@@ -1,0 +1,59 @@
+// 可插拔大模型接口（OpenAI 兼容：DeepSeek / 通义 / 智谱 / OpenAI）
+// 配置存于 localStorage('spark_llm')：{provider, apiKey, model, baseUrl}
+const LLM = {
+  PROVIDERS: {
+    deepseek: { name: 'DeepSeek', base: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
+    qwen:     { name: '通义千问', base: 'https://dashscope.aliyuncs.com/compatible-mode/v1', model: 'qwen-plus' },
+    zhipu:    { name: '智谱 GLM', base: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-flash' },
+    openai:   { name: 'OpenAI',   base: 'https://api.openai.com/v1', model: 'gpt-4o-mini' }
+  },
+  cfg() {
+    try { return JSON.parse(localStorage.getItem('spark_llm') || '{}'); }
+    catch (e) { return {}; }
+  },
+  save(c) { localStorage.setItem('spark_llm', JSON.stringify(c)); },
+  clear() { localStorage.removeItem('spark_llm'); },
+  enabled() {
+    const c = this.cfg();
+    return !!(c.apiKey && c.provider && this.PROVIDERS[c.provider]);
+  },
+  buildPrompt(plat, style, topic) {
+    const pname = { wechat: '微信公众号', xhs: '小红书', video: '短视频口播' }[plat] || '新媒体';
+    const sname = {
+      sharp: '犀利质疑、带思辨锋芒，敢于质疑共识',
+      warm: '温情走心、有共鸣、有画面感',
+      practical: '干货实操、可直接照做、有步骤感',
+      suspense: '悬念反转、勾起好奇心'
+    }[style] || '自然流畅';
+    return `你是一名资深中文新媒体编辑。请围绕主题「${topic}」，为${pname}创作一篇${sname}风格的内容包。
+严格只返回一个 JSON 对象，不要任何解释或 markdown 代码块：
+{
+  "titles": ["3个吸睛标题"],
+  "outline": ["提纲步骤1","步骤2","步骤3"],
+  "body": "正文，用\\n\\n分段，300-600字",
+  "golden": "一句可做封面的金句"
+}`;
+  },
+  async call(plat, style, topic) {
+    const c = this.cfg();
+    const p = this.PROVIDERS[c.provider] || this.PROVIDERS.deepseek;
+    const base = c.baseUrl || p.base;
+    const model = c.model || p.model;
+    const res = await fetch(base + '/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + c.apiKey },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: this.buildPrompt(plat, style, topic) }],
+        temperature: 0.9,
+        response_format: { type: 'json_object' }
+      })
+    });
+    if (!res.ok) throw new Error('API ' + res.status);
+    const data = await res.json();
+    const text = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
+    const obj = JSON.parse(text);
+    if (!obj.titles || !obj.body) throw new Error('返回格式异常');
+    return { topic, titles: obj.titles, outline: obj.outline || [], body: obj.body, golden: obj.golden || '' };
+  }
+};
