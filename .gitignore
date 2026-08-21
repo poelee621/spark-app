@@ -1,0 +1,21 @@
+# 依赖与构建产物
+node_modules/
+ios/
+dist/
+build/
+*.log
+
+# 密钥与证书（绝不入库）
+.env
+*.p12
+*.pem
+*.csr
+*.mobileprovision
+*.p8
+
+# 运行时数据
+entitlements.json
+
+# 系统
+.DS_Store
+Thumbs.db

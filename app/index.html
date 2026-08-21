@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>闪写 Spark · 中文创作灵感助手</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="phone">
+  <header>
+    <div class="logo">S</div>
+    <div class="brand">闪写 Spark<small>中文创作灵感助手</small></div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab on" data-p="create">创作</div>
+    <div class="tab" data-p="vip">会员</div>
+    <div class="tab" data-p="ai">AI</div>
+    <div class="tab" data-p="about">关于</div>
+  </div>
+
+  <main>
+    <!-- 创作 -->
+    <section class="panel on" id="create">
+      <div class="card">
+        <label>① 选择平台</label>
+        <div class="row" id="platRow">
+          <div class="chip on" data-v="wechat">公众号</div>
+          <div class="chip" data-v="xhs">小红书</div>
+          <div class="chip" data-v="video">短视频</div>
+        </div>
+        <label>② 输入主题 / 关键词</label>
+        <input id="topic" placeholder="例如：年轻人为什么不爱存钱" />
+        <label style="margin-top:10px">③ 选择文风</label>
+        <div class="row" id="styleRow">
+          <div class="chip on" data-v="sharp">犀利质疑</div>
+          <div class="chip" data-v="warm">温情走心</div>
+          <div class="chip" data-v="practical">干货实操</div>
+          <div class="chip" data-v="suspense">悬念反转</div>
+        </div>
+      </div>
+      <div class="counter" id="counter"></div>
+      <button class="btn" id="genBtn">⚡ 一键生成</button>
+      <div class="card out" id="out">
+        <div class="empty">填好主题，点「一键生成」，标题 / 提纲 / 正文 / 金句马上到手。</div>
+      </div>
+    </section>
+
+    <!-- 会员 -->
+    <section class="panel" id="vip">
+      <div class="card" id="vipCard">
+        <div style="text-align:center">
+          <div class="vipbadge" id="vipState">免费版</div>
+          <h3 style="margin:4px 0 2px">闪写 Pro 会员</h3>
+          <div style="font-size:12px;color:var(--sub)">解锁无限生成 · 高级模板 · 爆款库</div>
+        </div>
+        <div class="price" style="margin-top:14px">
+          <div class="plan">
+            <div class="p">¥18<span class="u"> /月</span></div>
+            <div class="perk">适合尝鲜<br>随时取消</div>
+          </div>
+          <div class="plan hot">
+            <div class="tag">推荐</div>
+            <div class="p">¥98<span class="u"> /年</span></div>
+            <div class="perk">省 55%<br>等同 ¥8/月</div>
+          </div>
+        </div>
+        <div class="perk" style="text-align:left;margin-top:12px">
+          <b>会员权益</b><br>
+          ✦ 无限次一键生成（免费版每日 3 次）<br>
+          ✦ 5 大文风 + 12 类行业模板<br>
+          ✦ 爆款标题库每周更新<br>
+          ✦ 导出 Markdown / 一键复制
+        </div>
+        <button class="btn" id="subBtn" style="margin-top:14px">订阅闪写 Pro</button>
+        <div style="font-size:10px;color:var(--sub);text-align:center;margin-top:8px">
+          内购由 App Store 处理 · 可随时在设置中取消
+        </div>
+      </div>
+    </section>
+
+    <!-- AI -->
+    <section class="panel" id="ai">
+      <div class="card">
+        <h4 style="margin-top:0">AI 引擎设置</h4>
+        <p style="font-size:12px;color:var(--sub);line-height:1.6;margin:0 0 10px">
+          粘贴任意 OpenAI 兼容服务商的 Key，即切换为<b style="color:var(--txt)">大模型生成</b>（质量与定制化大幅提升）。
+          未配置时自动使用<b style="color:var(--txt)">规则引擎</b>（离线、零成本）。
+        </p>
+        <label>服务商</label>
+        <select id="aiProvider">
+          <option value="deepseek">DeepSeek</option>
+          <option value="qwen">通义千问</option>
+          <option value="zhipu">智谱 GLM</option>
+          <option value="openai">OpenAI</option>
+        </select>
+        <label style="margin-top:10px">API Key</label>
+        <input id="aiKey" type="password" placeholder="sk-..." />
+        <label style="margin-top:10px">模型（可选，留空用默认）</label>
+        <input id="aiModel" placeholder="如 deepseek-chat" />
+        <label style="margin-top:10px">Base URL（可选，自定义/代理）</label>
+        <input id="aiBase" placeholder="https://api.deepseek.com/v1" />
+        <button class="btn" id="aiSave" style="margin-top:12px">保存并启用</button>
+        <button class="btn ghost" id="aiClear" style="margin-top:8px">清除 Key（退回规则引擎）</button>
+        <div class="perk" id="aiStatus" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <!-- 关于 -->
+    <section class="panel about" id="about">
+      <div class="card">
+        <h4 style="margin-top:0">关于闪写 Spark</h4>
+        <p>闪写 Spark 是一款面向中小创作者的 <b>中文创作灵感助手</b>。输入一个主题，几秒钟产出可直接用的标题、提纲、正文与金句，覆盖公众号、小红书、短视频三大场景。</p>
+        <p>MVP 阶段采用<b>规则引擎</b>生成（无需联网、零成本），配置 Key 后接入<b>大模型</b>，质量与定制化大幅提升。</p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top:0">隐私政策（摘要）</h4>
+        <p>本应用<b>不收集</b>你的真实身份信息。创作输入仅在本地/你配置的服务商处生成。订阅状态仅保存在本机。完整隐私政策：<a href="privacy.html" style="color:#6c8cff;font-weight:600">点此查看 ›</a></p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top:0">联系</h4>
+        <p>商务合作 / 反馈：spark@coldtank.example<br>版本 v0.2</p>
+      </div>
+    </section>
+  </main>
+  <footer>闪写 Spark · 坡哥 & 小9 联合出品</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="generator.js"></script>
+<script src="llm.js"></script>
+<script src="iap.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

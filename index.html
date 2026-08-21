@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>闪写 Spark · 中文创作灵感助手</title>
+<style>
+  :root{
+    --bg:#0e0f1a; --card:#171a2b; --card2:#1f2336; --line:#2a2f47;
+    --txt:#eef1ff; --sub:#9aa3c7; --acc:#6c8cff; --acc2:#a06bff; --ok:#36d399; --warn:#ffcf5c;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;}
+  .phone{max-width:430px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;
+    background:linear-gradient(180deg,#0e0f1a 0%,#121426 100%);}
+  header{padding:18px 18px 10px;display:flex;align-items:center;gap:10px;}
+  .logo{width:34px;height:34px;border-radius:9px;
+    background:linear-gradient(135deg,var(--acc),var(--acc2));display:grid;place-items:center;
+    font-weight:800;font-size:18px;color:#fff;box-shadow:0 4px 14px rgba(108,140,255,.45);}
+  .brand{font-weight:800;font-size:17px;letter-spacing:.5px}
+  .brand small{display:block;font-weight:500;font-size:11px;color:var(--sub);letter-spacing:1px}
+  .tabs{display:flex;gap:6px;padding:6px 14px 0}
+  .tab{flex:1;text-align:center;padding:9px 0;font-size:14px;color:var(--sub);
+    border-bottom:2px solid transparent;cursor:pointer}
+  .tab.on{color:var(--txt);border-color:var(--acc);font-weight:700}
+  main{flex:1;padding:14px;overflow:auto}
+  .panel{display:none}
+  .panel.on{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+  label{font-size:12px;color:var(--sub);display:block;margin:0 0 6px 2px}
+  input,textarea,select{width:100%;background:var(--card2);border:1px solid var(--line);
+    color:var(--txt);border-radius:11px;padding:11px;font-size:14px;outline:none;font-family:inherit}
+  textarea{resize:vertical;min-height:64px}
+  input:focus,textarea:focus,select:focus{border-color:var(--acc)}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .chip{flex:1;min-width:80px;text-align:center;padding:9px 6px;font-size:13px;border-radius:11px;
+    background:var(--card2);border:1px solid var(--line);color:var(--sub);cursor:pointer}
+  .chip.on{background:linear-gradient(135deg,rgba(108,140,255,.25),rgba(160,107,255,.25));
+    border-color:var(--acc);color:#fff;font-weight:700}
+  .btn{width:100%;border:none;border-radius:13px;padding:14px;font-size:15px;font-weight:800;
+    color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));cursor:pointer;
+    box-shadow:0 6px 18px rgba(108,140,255,.4)}
+  .btn:active{transform:scale(.99)}
+  .btn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--sub);box-shadow:none}
+  .counter{font-size:11px;color:var(--sub);text-align:right;margin:4px 2px 12px}
+  .out{min-height:40px}
+  .out .sec{margin-bottom:14px}
+  .out h4{font-size:13px;color:var(--acc);margin:0 0 7px;display:flex;align-items:center;gap:6px}
+  .out h4 .dot{width:6px;height:6px;border-radius:50%;background:var(--acc)}
+  .titleItem{background:var(--card2);border:1px solid var(--line);border-radius:11px;
+    padding:10px 12px;margin-bottom:7px;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .titleItem span{flex:1}
+  .copy{font-size:11px;color:var(--acc);border:1px solid var(--acc);border-radius:8px;padding:4px 8px;cursor:pointer;white-space:nowrap}
+  .bodyText{font-size:13.5px;line-height:1.7;color:#dfe4ff;white-space:pre-wrap}
+  .golden{font-style:italic;color:var(--warn);background:rgba(255,207,92,.08);
+    border-left:3px solid var(--warn);padding:9px 12px;border-radius:0 9px 9px 0;font-size:13.5px;line-height:1.6}
+  .empty{color:var(--sub);font-size:13px;text-align:center;padding:30px 10px}
+  .price{display:flex;gap:10px}
+  .plan{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+  .plan.hot{border-color:var(--acc);background:linear-gradient(135deg,rgba(108,140,255,.12),rgba(160,107,255,.12))}
+  .plan .p{font-size:22px;font-weight:800}
+  .plan .u{font-size:11px;color:var(--sub)}
+  .plan .tag{font-size:10px;color:#fff;background:var(--acc);border-radius:6px;padding:2px 7px;display:inline-block;margin-bottom:6px}
+  .perk{font-size:12.5px;color:var(--sub);line-height:1.9;margin-top:8px}
+  .perk b{color:var(--txt)}
+  .vipbadge{display:inline-block;background:linear-gradient(135deg,var(--acc),var(--acc2));
+    color:#fff;font-size:11px;padding:4px 10px;border-radius:20px;margin-bottom:8px}
+  .about p{font-size:13px;line-height:1.8;color:var(--sub)}
+  .about b{color:var(--txt)}
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#000c;
+    border:1px solid var(--line);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;
+    opacity:0;transition:.25s;pointer-events:none;z-index:9}
+  .toast.on{opacity:1}
+  footer{font-size:10px;color:var(--sub);text-align:center;padding:10px}
+</style>
+</head>
+<body>
+<div class="phone">
+  <header>
+    <div class="logo">S</div>
+    <div class="brand">闪写 Spark<small>中文创作灵感助手</small></div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab on" data-p="create">创作</div>
+    <div class="tab" data-p="vip">会员</div>
+    <div class="tab" data-p="about">关于</div>
+  </div>
+
+  <main>
+    <!-- 创作 -->
+    <section class="panel on" id="create">
+      <div class="card">
+        <label>① 选择平台</label>
+        <div class="row" id="platRow">
+          <div class="chip on" data-v="wechat">公众号</div>
+          <div class="chip" data-v="xhs">小红书</div>
+          <div class="chip" data-v="video">短视频</div>
+        </div>
+        <label>② 输入主题 / 关键词</label>
+        <input id="topic" placeholder="例如：年轻人为什么不爱存钱" />
+        <label style="margin-top:10px">③ 选择文风</label>
+        <div class="row" id="styleRow">
+          <div class="chip on" data-v="sharp">犀利质疑</div>
+          <div class="chip" data-v="warm">温情走心</div>
+          <div class="chip" data-v="practical">干货实操</div>
+          <div class="chip" data-v="suspense">悬念反转</div>
+        </div>
+      </div>
+      <div class="counter" id="counter"></div>
+      <button class="btn" id="genBtn">⚡ 一键生成</button>
+
+      <div class="card out" id="out">
+        <div class="empty">填好主题，点「一键生成」，标题 / 提纲 / 正文 / 金句马上到手。</div>
+      </div>
+    </section>
+
+    <!-- 会员 -->
+    <section class="panel" id="vip">
+      <div class="card" id="vipCard">
+        <div style="text-align:center">
+          <div class="vipbadge" id="vipState">免费版</div>
+          <h3 style="margin:4px 0 2px">闪写 Pro 会员</h3>
+          <div style="font-size:12px;color:var(--sub)">解锁无限生成 · 高级模板 · 爆款库</div>
+        </div>
+        <div class="price" style="margin-top:14px">
+          <div class="plan">
+            <div class="p">¥18<span class="u"> /月</span></div>
+            <div class="perk">适合尝鲜<br>随时取消</div>
+          </div>
+          <div class="plan hot">
+            <div class="tag">推荐</div>
+            <div class="p">¥98<span class="u"> /年</span></div>
+            <div class="perk">省 55%<br>等同 ¥8/月</div>
+          </div>
+        </div>
+        <div class="perk" style="text-align:left;margin-top:12px">
+          <b>会员权益</b><br>
+          ✦ 无限次一键生成（免费版每日 3 次）<br>
+          ✦ 5 大文风 + 12 类行业模板<br>
+          ✦ 爆款标题库每周更新<br>
+          ✦ 导出 Markdown / 一键复制
+        </div>
+        <button class="btn" id="subBtn" style="margin-top:14px">订阅闪写 Pro</button>
+        <div style="font-size:10px;color:var(--sub);text-align:center;margin-top:8px">
+          内购由 App Store 处理 · 可随时在设置中取消
+        </div>
+      </div>
+    </section>
+
+    <!-- 关于 -->
+    <section class="panel about" id="about">
+      <div class="card">
+        <h4 style="margin-top:0">关于闪写 Spark</h4>
+        <p>闪写 Spark 是一款面向中小创作者的 <b>中文创作灵感助手</b>。输入一个主题，几秒钟产出可直接用的标题、提纲、正文与金句，覆盖公众号、小红书、短视频三大场景。</p>
+        <p>MVP 阶段采用<b>规则引擎</b>生成（无需联网、零成本），正式版将接入大模型，质量与定制化大幅提升。</p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top:0">隐私政策（摘要）</h4>
+        <p>本应用<b>不收集</b>你的真实身份信息。创作输入仅在本地生成，不上传服务器。订阅状态仅保存在本机。完整隐私政策随 App Store 上架同步公示。</p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top:0">联系</h4>
+        <p>商务合作 / 反馈：spark@coldtank.example<br>版本 v0.1 (MVP)</p>
+      </div>
+    </section>
+  </main>
+  <footer>闪写 Spark · 坡哥 & 小9 联合出品 · MVP Demo</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s=>document.querySelector(s);
+let plat='wechat', style='sharp', used=0;
+const LIMIT = 3;
+
+// ---- tabs ----
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on'); $('#'+t.dataset.p).classList.add('on');
+});
+// ---- chips ----
+$('#platRow').onclick=e=>{if(e.target.dataset.v){sel('#platRow',e.target);plat=e.target.dataset.v;}};
+$('#styleRow').onclick=e=>{if(e.target.dataset.v){sel('#styleRow',e.target);style=e.target.dataset.v;}};
+function sel(row,el){document.querySelectorAll(row+' .chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');}
+
+// ---- isVIP ----
+function isVIP(){return localStorage.getItem('spark_vip')==='1';}
+function refreshCounter(){
+  if(isVIP()){$('#counter').textContent='Pro 会员 · 无限生成';return;}
+  $('#counter').textContent=`今日免费生成 ${used}/${LIMIT} 次`;
+}
+refreshCounter();
+
+// ---- generator ----
+const TITLES={
+  sharp:t=>`别再被「${t}」洗脑了`,`关于${t}，我有一些不合时宜的真话`,`${t}越热闹，越要警惕`,`谁在靠${t}割韭菜？`,
+  warm:t=>`${t}里，藏着被忽略的温柔`,`谢谢你，曾为${t}较过真`,`${t}教会我的三件事`,`慢一点，${t}会给你答案`,
+  practical:t=>`搞定${t}，只需这 3 步`,`${t}实操手册（建议收藏）`,`新手做${t}最常踩的 5 个坑`,`一张表讲清${t}`,
+  suspense:t=>`关于${t}，有个被隐瞒的真相`,`${t}背后，是一盘大棋`,`如果${t}是假的呢？`,`${t}的水，比你想的深`
+};
+const HOOK={
+  sharp:['我们先把道德滤镜摘了，谈点实在的。','很多人不敢说的话，今天我来说。','共识未必正确，质疑才是起点。'],
+  warm:['有些事，只有经历过的人才懂。','不是矫情，是真的很在意。','那天晚上，我突然想通了。'],
+  practical:['直接上方法，废话不多。','收藏这一篇，照着做就行。','我把踩过的坑都标红了。'],
+  suspense:['你以为你看到的是全部？','真相往往藏在反面。','这个故事，结局我先不说。']
+};
+const BODY={
+  sharp:['${t}"从来不是一个单纯的问题，它背后是利益、是叙事、是被人替你写好的剧本。','当所有人都在喊"要理性"的时候，恰恰最该问一句：谁定义的理性？','我不确定我的判断全对，但"不跪着接收结论"这件事，值得。'],
+  warm:['关于"${t}"，我们总急着要结果，却忘了过程里那些细小的光。','后来才明白，真正重要的不是${t}本身，而是它让我们成为谁。','愿你在${t}里，也能被温柔以待。'],
+  practical:['做"${t}"第一步，先搞清楚你的目标人群是谁，别一上来就铺量。','第二步，把流程拆成可复制的 checklist，每天执行一点点。','第三步，复盘数据，留下有效的，砍掉自嗨的。'],
+  suspense:['表面上看，"${t}"是 A，但顺着钱和权力的流向看，答案可能是 B。','别急着反驳，先把时间线拉到三年前，你会发现伏笔早就埋下。','所以下次再听到"${t}"，不妨多问一句：谁受益？']
+};
+const GOLD={
+  sharp:['“共识是最便宜的麻醉剂。”','“我不确定的时候，宁愿先闭嘴，也不点头的。”'],
+  warm:['“温柔不是软弱，是看清后仍选择善意。”'],
+  practical:['“执行比完美重要，先跑起来再优化。”'],
+  suspense:['“你看到的真相，往往只是别人想让你看到的。”']
+};
+const OUTLINE={
+  wechat:['引子（钩子）','现象 / 冲突','质疑前提','拆解分析','反讽收尾 + 互动'],
+  xhs:['吸睛标题','痛点共鸣','方法 / 清单','emoji 排版','评论区钩子'],
+  video:['3 秒钩子','反转设定','干货输出','金句沉淀','引导关注']
+};
+const PLATNAME={wechat:'公众号',xhs:'小红书',video:'短视频'};
+
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+
+function generate(){
+  if(!isVIP()){
+    if(used>=LIMIT){toast('今日免费次数已用完，去「会员」解锁无限生成 🚀');return;}
+    used++;localStorage.setItem('spark_used',used);refreshCounter();
+  }
+  const t=$('#topic').value.trim()||'这件事';
+  const titles=TITLES[style](t);
+  let h='<div class="sec"><h4><span class="dot"></span>标题（'.concat(PLATNAME[plat],' · ',styleName(style),'）</h4>');
+  titles.forEach(x=>{h+='<div class="titleItem"><span>'+x+'</span><div class="copy" onclick="copyTxt(this)">复制</div></div>';});
+  h+='</div>';
+  h+='<div class="sec"><h4><span class="dot"></span>内容提纲</h4><div class="bodyText">';
+  OUTLINE[plat].forEach((s,i)=>{h+=(i+1)+'. '+s+'\n';});
+  h+='</div></div>';
+  h+='<div class="sec"><h4><span class="dot"></span>正文（规则引擎生成）</h4><div class="bodyText">';
+  h+=pick(HOOK[style])+'\n\n';
+  BODY[style].forEach(p=>{h+=p.replace(/\$\{t\}/g,t)+'\n\n';});
+  h+='</div></div>';
+  h+='<div class="sec"><h4><span class="dot"></span>金句（可直接做封面）</h4><div class="golden">'+pick(GOLD[style])+'</div></div>';
+  $('#out').innerHTML=h;
+}
+function styleName(s){return {sharp:'犀利',warm:'温情',practical:'干货',suspense:'悬念'}[s];}
+function copyTxt(el){const t=el.parentElement.querySelector('span').textContent;
+  navigator.clipboard&&navigator.clipboard.writeText(t);toast('已复制 ✓');}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1600);}
+$('#genBtn').onclick=generate;
+
+// ---- subscribe (demo) ----
+$('#subBtn').onclick=()=>{
+  // 真实环境此处调用 StoreKit 内购；MVP 先做本地演示解锁
+  localStorage.setItem('spark_vip','1');
+  $('#vipState').textContent='Pro 会员';
+  $('#subBtn').textContent='已开通 ✓';
+  $('#subBtn').classList.add('ghost');
+  toast('订阅成功（演示）· 已解锁无限生成');
+  refreshCounter();
+};
+if(isVIP()){$('#vipState').textContent='Pro 会员';$('#subBtn').textContent='已开通 ✓';$('#subBtn').classList.add('ghost');}
+</script>
+</body>
+</html>

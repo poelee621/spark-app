@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>闪写 Spark · App Store 截图模板</title>
+<style>
+  :root {
+    --bg: #f4f5fb;
+    --card: #ffffff;
+    --brand1: #6c8cff;
+    --brand2: #a06bff;
+    --ink: #1c2033;
+    --muted: #8a90a6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 40px 24px;
+  }
+  h1 { text-align: center; font-size: 26px; margin-bottom: 6px; }
+  .sub { text-align: center; color: var(--muted); margin-bottom: 36px; font-size: 14px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .shot { text-align: center; }
+  .cap { margin-top: 12px; font-size: 13px; color: var(--muted); }
+  .cap b { color: var(--ink); display: block; font-size: 14px; margin-bottom: 2px; }
+
+  /* iPhone 14 Pro 模拟框 */
+  .phone {
+    width: 280px;
+    height: 580px;
+    margin: 0 auto;
+    background: #0b0d1a;
+    border-radius: 46px;
+    padding: 12px;
+    position: relative;
+    box-shadow: 0 18px 40px rgba(40,44,90,0.18);
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #fbfcff, #eef1ff);
+    border-radius: 36px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .notch {
+    position: absolute;
+    top: 10px; left: 50%; transform: translateX(-50%);
+    width: 110px; height: 26px; background: #0b0d1a;
+    border-radius: 0 0 16px 16px; z-index: 5;
+  }
+  .statusbar {
+    height: 44px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px; font-size: 12px; color: var(--ink); font-weight: 600;
+  }
+  .appbar {
+    padding: 10px 18px; font-size: 18px; font-weight: 700;
+    background: linear-gradient(90deg, var(--brand1), var(--brand2));
+    color: #fff;
+  }
+  .body { flex: 1; padding: 16px 18px; overflow: hidden; }
+  .field {
+    background: #fff; border: 1px solid #e3e7f5; border-radius: 12px;
+    padding: 12px; font-size: 13px; color: var(--muted); margin-bottom: 12px;
+  }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .chip {
+    background: #eef1ff; color: var(--brand1); font-size: 12px;
+    padding: 6px 12px; border-radius: 999px; font-weight: 600;
+  }
+  .chip.on { background: linear-gradient(90deg, var(--brand1), var(--brand2)); color: #fff; }
+  .btn {
+    background: linear-gradient(90deg, var(--brand1), var(--brand2));
+    color: #fff; text-align: center; padding: 13px; border-radius: 12px;
+    font-weight: 700; font-size: 14px; margin-top: 6px;
+  }
+  .result {
+    background: #fff; border: 1px solid #e3e7f5; border-radius: 12px;
+    padding: 12px; margin-bottom: 10px; font-size: 12.5px; line-height: 1.6;
+  }
+  .result b { color: var(--brand2); }
+  .quote {
+    background: linear-gradient(135deg, #eef1ff, #f6ecff);
+    border-radius: 12px; padding: 14px; font-size: 13px; line-height: 1.7;
+    font-style: italic; color: #4a4f6b;
+  }
+  .price { display: flex; gap: 10px; margin: 10px 0; }
+  .plan { flex: 1; border: 2px solid #e3e7f5; border-radius: 12px; padding: 12px; text-align: center; }
+  .plan.on { border-color: var(--brand1); background: #f3f6ff; }
+  .plan .p { font-size: 18px; font-weight: 800; }
+  .plan .u { font-size: 11px; color: var(--muted); }
+  .tabs { display: flex; border-top: 1px solid #e3e7f5; }
+  .tab { flex: 1; text-align: center; padding: 12px 0; font-size: 12px; color: var(--muted); }
+  .tab.on { color: var(--brand1); font-weight: 700; }
+  .foot { text-align:center; color: var(--muted); font-size: 12px; margin-top: 40px; }
+</style>
+</head>
+<body>
+  <h1>闪写 Spark · App Store 截图模板</h1>
+  <div class="sub">用浏览器将该页截图（每屏 1290×2796 或按比例），即可直接作为上架素材。真实 App 上架前用 Xcode 模拟器截同款界面替换。</div>
+
+  <div class="grid">
+    <!-- 屏1 创作页 -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="screen">
+          <div class="statusbar"><span>9:41</span><span>Spark</span></div>
+          <div class="appbar">✨ 闪写 Spark</div>
+          <div class="body">
+            <div class="field">输入主题：打工人如何开始副业写作</div>
+            <div class="chip-row">
+              <span class="chip on">公众号</span><span class="chip">小红书</span><span class="chip">短视频</span>
+            </div>
+            <div class="chip-row">
+              <span class="chip on">犀利</span><span class="chip">温情</span><span class="chip">干货</span><span class="chip">幽默</span>
+            </div>
+            <div class="btn">⚡ 一键生成</div>
+            <div class="field" style="margin-top:12px">今日剩余生成：2 / 3</div>
+          </div>
+          <div class="tabs"><div class="tab on">创作</div><div class="tab">会员</div><div class="tab">AI</div><div class="tab">关于</div></div>
+        </div>
+      </div>
+      <div class="cap"><b>屏1 · 创作首页</b>主题输入 + 平台/文风选择</div>
+    </div>
+
+    <!-- 屏2 结果页 -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="screen">
+          <div class="statusbar"><span>9:41</span><span>Spark</span></div>
+          <div class="appbar">📝 生成结果</div>
+          <div class="body">
+            <div class="result"><b>标题</b><br>①下班后2小时，我把公众号做成了第二份工资<br>②别等灵感，灵感是穷人的自我安慰</div>
+            <div class="result"><b>正文提纲</b><br>1. 破除日更迷信 → 2. 从零到一的恐惧 → 3. 流水线纪律 → 4. 工具即杠杆</div>
+            <div class="result"><b>金句</b><br>「工具不会取代你，但用工具的你会取代不用工具的你。」</div>
+          </div>
+          <div class="tabs"><div class="tab on">创作</div><div class="tab">会员</div><div class="tab">AI</div><div class="tab">关于</div></div>
+        </div>
+      </div>
+      <div class="cap"><b>屏2 · 生成结果</b>标题+提纲+金句一屏出</div>
+    </div>
+
+    <!-- 屏3 金句卡 -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="screen">
+          <div class="statusbar"><span>9:41</span><span>Spark</span></div>
+          <div class="appbar">💡 金句卡片</div>
+          <div class="body" style="display:flex;align-items:center;justify-content:center">
+            <div class="quote">「创作不是等闪电，<br>是先把电线接上。」<br><br>— 闪写 Spark 生成</div>
+          </div>
+          <div class="tabs"><div class="tab on">创作</div><div class="tab">会员</div><div class="tab">AI</div><div class="tab">关于</div></div>
+        </div>
+      </div>
+      <div class="cap"><b>屏3 · 金句卡片</b>可分享的社交货币</div>
+    </div>
+
+    <!-- 屏4 会员页 -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="screen">
+          <div class="statusbar"><span>9:41</span><span>Spark</span></div>
+          <div class="appbar">⭐ 闪写 Pro</div>
+          <div class="body">
+            <div class="price">
+              <div class="plan on"><div class="p">¥18</div><div class="u">/月 无限生成</div></div>
+              <div class="plan"><div class="p">¥98</div><div class="u">/年 省 54%</div></div>
+            </div>
+            <div class="field">✓ 无限次生成<br>✓ 全部文风与平台<br>✓ 金句卡片导出</div>
+            <div class="btn">订阅 Pro</div>
+            <div class="field" style="margin-top:12px;text-align:center">恢复购买</div>
+          </div>
+          <div class="tabs"><div class="tab">创作</div><div class="tab on">会员</div><div class="tab">AI</div><div class="tab">关于</div></div>
+        </div>
+      </div>
+      <div class="cap"><b>屏4 · 会员订阅</b>月¥18 / 年¥98</div>
+    </div>
+
+    <!-- 屏5 AI 设置页 -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="screen">
+          <div class="statusbar"><span>9:41</span><span>Spark</span></div>
+          <div class="appbar">🤖 AI 设置</div>
+          <div class="body">
+            <div class="chip-row">
+              <span class="chip on">DeepSeek</span><span class="chip">通义</span><span class="chip">智谱</span><span class="chip">OpenAI</span>
+            </div>
+            <div class="field">API Key：sk-••••••••••••••••</div>
+            <div class="btn">保存并启用 AI 生成</div>
+            <div class="field" style="margin-top:12px">未填 Key 时自动使用免费规则引擎</div>
+          </div>
+          <div class="tabs"><div class="tab">创作</div><div class="tab">会员</div><div class="tab on">AI</div><div class="tab">关于</div></div>
+        </div>
+      </div>
+      <div class="cap"><b>屏5 · AI 接入</b>贴 Key 即用大模型</div>
+    </div>
+
+    <!-- 屏6 关于页 -->
+    <div class="shot">
+      <div class="phone"><div class="notch"></div>
+        <div class="screen">
+          <div class="statusbar"><span>9:41</span><span>Spark</span></div>
+          <div class="appbar">ℹ️ 关于</div>
+          <div class="body">
+            <div class="field">闪写 Spark v1.0<br>中文创作灵感助手</div>
+            <div class="field">隐私政策<br>我们不在云端存储你的主题内容；大模型 Key 仅存本机。</div>
+            <div class="field">联系我们<br>hi@coldtank.app</div>
+            <div class="btn" style="background:#eef1ff;color:var(--brand1)">查看完整隐私政策</div>
+          </div>
+          <div class="tabs"><div class="tab">创作</div><div class="tab">会员</div><div class="tab">AI</div><div class="tab on">关于</div></div>
+        </div>
+      </div>
+      <div class="cap"><b>屏6 · 关于/隐私</b>合规必备</div>
+    </div>
+  </div>
+
+  <div class="foot">截图尺寸建议：1290 × 2796（iPhone 6.7"）· 最多 10 张 · 本模板为占位示意，上架前用真实 App 界面替换</div>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>闪写 Spark · 小红书封面模板</title>
+<style>
+  :root { --b1:#6c8cff; --b2:#a06bff; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background:#eef0f6; padding:30px; }
+  h1 { text-align:center; font-size:20px; margin-bottom:4px; }
+  .tip { text-align:center; color:#8a90a6; font-size:13px; margin-bottom:26px; }
+  .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:24px; max-width:960px; margin:0 auto; }
+  .cover { width:100%; aspect-ratio:3/4; border-radius:18px; overflow:hidden; position:relative;
+           background:linear-gradient(150deg,var(--b1),var(--b2)); color:#fff; padding:34px 28px;
+           display:flex; flex-direction:column; justify-content:space-between; }
+  .cover .tag { align-self:flex-start; background:rgba(255,255,255,.22); padding:6px 14px; border-radius:999px; font-size:14px; font-weight:600; }
+  .cover .big { font-size:40px; font-weight:900; line-height:1.18; letter-spacing:1px; text-shadow:0 2px 10px rgba(0,0,0,.18); }
+  .cover .sub2 { font-size:15px; opacity:.92; }
+  .cover .foot { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:700; }
+  .logo { width:26px; height:26px; border-radius:7px; background:#fff; color:var(--b2); display:inline-flex; align-items:center; justify-content:center; font-weight:900; font-size:15px; }
+  .caption { text-align:center; font-size:12px; color:#8a90a6; margin-top:10px; }
+  .note { text-align:center; color:#8a90a6; font-size:12px; margin-top:30px; }
+</style>
+</head>
+<body>
+  <h1>闪写 Spark · 小红书封面模板</h1>
+  <div class="tip">用浏览器全屏截图每张封面（建议 1080×1440），直接当笔记首图。文字清晰、零 AI 乱码。</div>
+
+  <div class="grid">
+    <div>
+      <div class="cover">
+        <div class="tag">自媒体干货</div>
+        <div>
+          <div class="big">天天想标题<br>想到头秃？</div>
+          <div class="sub2">AI 替你一口气憋 10 个 🔥</div>
+        </div>
+        <div class="foot"><span class="logo">S</span> 闪写 Spark</div>
+      </div>
+      <div class="caption">封面1 · 痛点引流（笔记1）</div>
+    </div>
+
+    <div>
+      <div class="cover">
+        <div class="tag">副业搞钱</div>
+        <div>
+          <div class="big">下班后2小时<br>做成第二份工资</div>
+          <div class="sub2">我把公众号跑通了 💰</div>
+        </div>
+        <div class="foot"><span class="logo">S</span> 闪写 Spark</div>
+      </div>
+      <div class="caption">封面2 · 共鸣副业（笔记2）</div>
+    </div>
+
+    <div>
+      <div class="cover">
+        <div class="tag">运营方法论</div>
+        <div>
+          <div class="big">爆款标题<br>就 3 个套路</div>
+          <div class="sub2">我拆了 100 篇 10w+ 📌</div>
+        </div>
+        <div class="foot"><span class="logo">S</span> 闪写 Spark</div>
+      </div>
+      <div class="caption">封面3 · 方法论（笔记3）</div>
+    </div>
+
+    <div>
+      <div class="cover">
+        <div class="tag">认知反转</div>
+        <div>
+          <div class="big">戒掉<br>灵感焦虑</div>
+          <div class="sub2">写作早就是技术活 ✍️</div>
+        </div>
+        <div class="foot"><span class="logo">S</span> 闪写 Spark</div>
+      </div>
+      <div class="caption">封面4 · 人设反转（笔记5）</div>
+    </div>
+  </div>
+
+  <div class="note">替换文案即可生成更多封面；配色取自品牌蓝紫渐变，与 App 图标一致。</div>
+</body>
+</html>

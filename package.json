@@ -1,0 +1,19 @@
+{
+  "name": "spark-app",
+  "version": "0.2.0",
+  "private": true,
+  "description": "闪写 Spark · 中文创作灵感助手 (Capacitor iOS)",
+  "scripts": {
+    "sync": "cap sync",
+    "open:ios": "cap open ios",
+    "test:llm": "node scripts/test_llm.mjs"
+  },
+  "dependencies": {
+    "@revenuecat/purchases-capacitor": "^13.4.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/ios": "^6.1.2"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "spark-subscription-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "闪写Spark 订阅校验后端（Cloudflare Worker）：Apple 收据校验 + RevenueCat Webhook + 会员查询",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
