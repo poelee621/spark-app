@@ -69,7 +69,7 @@ jobs:
           </plist>
           EOF
 
-            - name: Force signing settings in Xcode project
+      - name: Force signing settings in Xcode project
         env:
           TEAM_ID: ${{ secrets.TEAM_ID }}
         run: |
