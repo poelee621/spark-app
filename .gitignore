@@ -12,6 +12,7 @@ build/
 *.csr
 *.mobileprovision
 *.p8
+*.cer
 *.b64
 certs_b64.txt
 
