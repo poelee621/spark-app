@@ -40,8 +40,10 @@ jobs:
         env:
           PROFILE_BASE64: ${{ secrets.IOS_PROFILE_BASE64 }}
         run: |
+          echo "PROFILE_BASE64 length: ${#PROFILE_BASE64}"
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           echo "$PROFILE_BASE64" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/Spark_Distribution.mobileprovision"
+          echo "Decoded profile size: $(stat -f%z "$HOME/Library/MobileDevice/Provisioning Profiles/Spark_Distribution.mobileprovision" 2>/dev/null || stat -c%s "$HOME/Library/MobileDevice/Provisioning Profiles/Spark_Distribution.mobileprovision" 2>/dev/null)"
 
       - name: Prepare export options
         env:
@@ -67,6 +69,20 @@ jobs:
           </plist>
           EOF
 
+      - name: Force signing settings in Xcode project
+        env:
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+        run: |
+          PBJ="ios/App/App.xcodeproj/project.pbxproj"
+          # Replace empty/bogus development team with real team
+          sed -i '' "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = ${TEAM_ID};/g" "$PBJ" 2>/dev/null || sed -i "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = ${TEAM_ID};/g" "$PBJ"
+          sed -i '' "s/DEVELOPMENT_TEAM = [A-Z0-9]*;/DEVELOPMENT_TEAM = ${TEAM_ID};/g" "$PBJ" 2>/dev/null || sed -i "s/DEVELOPMENT_TEAM = [A-Z0-9]*;/DEVELOPMENT_TEAM = ${TEAM_ID};/g" "$PBJ"
+          # Force manual signing
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBJ" 2>/dev/null || sed -i 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBJ"
+          # Force distribution identity and provisioning profile
+          sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "iPhone Distribution";/g' "$PBJ" 2>/dev/null || sed -i 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "iPhone Distribution";/g' "$PBJ"
+          grep -E 'DEVELOPMENT_TEAM|CODE_SIGN_STYLE|CODE_SIGN_IDENTITY' "$PBJ" | head -20
+
       - name: Archive
         run: |
           xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release \
@@ -75,7 +91,8 @@ jobs:
       - name: Export IPA
         run: |
           xcodebuild -exportArchive -archivePath build/Spark.xcarchive \
-            -exportPath build/export -exportOptionsPlist ExportOptions.plist
+            -exportPath build/export -exportOptionsPlist ExportOptions.plist \
+            -allowProvisioningUpdates
 
       - name: Upload IPA to TestFlight (altool)
         env:
