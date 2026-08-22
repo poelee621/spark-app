@@ -15,6 +15,8 @@ build/
 *.cer
 *.b64
 certs_b64.txt
+apple_api_b64.txt
+all_secrets.txt
 
 # 运行时数据
 entitlements.json
