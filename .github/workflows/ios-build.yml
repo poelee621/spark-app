@@ -138,16 +138,47 @@ jobs:
 
       - name: Inject custom app icon
         run: |
+          SRC="app-icon/AppIcon.appiconset"
+          echo "--- source icon set ($(ls "$SRC" | wc -l) files) ---"
+          ls -la "$SRC"
           echo "--- locating all AppIcon.appiconset directories ---"
-          find ios -type d -name "AppIcon.appiconset" 2>/dev/null
-          echo "--- injecting custom icons into every found set ---"
-          for target in $(find ios -type d -name "AppIcon.appiconset" 2>/dev/null); do
+          TARGETS=$(find ios -type d -name "AppIcon.appiconset" 2>/dev/null)
+          echo "found targets: $TARGETS"
+          if [ -z "$TARGETS" ]; then
+            echo "!!! find found nothing, trying default Capacitor path"
+            DEFAULT="ios/App/App/Assets.xcassets/AppIcon.appiconset"
+            if [ -d "$DEFAULT" ]; then
+              TARGETS="$DEFAULT"
+              echo "using default path: $DEFAULT"
+            else
+              echo "!!! ERROR: no AppIcon.appiconset found; dumping all appiconset dirs"
+              find ios -type d -name "*.appiconset" 2>/dev/null
+              exit 1
+            fi
+          fi
+          for target in $TARGETS; do
             rm -rf "$target"
-            cp -r app-icon/AppIcon.appiconset "$target"
+            cp -r "$SRC" "$target"
             echo "injected: $target"
+            ls -la "$target"
           done
-          echo "--- verifying final contents ---"
-          find ios -type d -name "AppIcon.appiconset" -exec sh -c 'echo ">>> $1"; ls -la "$1"' _ {} \;
+          echo "--- final verification ---"
+          find ios -type d -name "AppIcon.appiconset" -exec sh -c 'echo ">>> $1"; ls "$1"' _ {} \;
+
+      - name: Bump build number
+        run: |
+          PLIST="ios/App/App/Info.plist"
+          python3 - "$PLIST" "${{ github.run_number }}" << 'PY'
+          import sys, plistlib
+          path, num = sys.argv[1], sys.argv[2]
+          with open(path, "rb") as f:
+              d = plistlib.load(f)
+          old = d.get("CFBundleVersion", "?")
+          d["CFBundleVersion"] = str(num)
+          with open(path, "wb") as f:
+              plistlib.dump(d, f)
+          print(f"CFBundleVersion bumped: {old} -> {num}")
+          PY
 
       - name: Archive
         run: |
