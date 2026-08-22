@@ -48,10 +48,13 @@ jobs:
           security cms -D -i "$PROFILE_PATH" > /tmp/profile.plist
           PROFILE_NAME=$(plutil -extract Name raw /tmp/profile.plist)
           PROFILE_UUID=$(plutil -extract UUID raw /tmp/profile.plist)
+          PROFILE_TEAM=$(python3 -c "import plistlib; d=plistlib.loads(open('/tmp/profile.plist','rb').read()); t=d.get('TeamIdentifier'); print(t[0] if isinstance(t,list) else t)")
           echo "PROFILE_NAME=$PROFILE_NAME"
           echo "PROFILE_UUID=$PROFILE_UUID"
+          echo "PROFILE_TEAM=$PROFILE_TEAM"
           echo "PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
           echo "PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
+          echo "PROFILE_TEAM=$PROFILE_TEAM" >> "$GITHUB_ENV"
 
       - name: Prepare export options
         env:
@@ -65,7 +68,7 @@ jobs:
             <key>method</key>
             <string>app-store</string>
             <key>teamID</key>
-            <string>${TEAM_ID}</string>
+            <string>${PROFILE_TEAM}</string>
             <key>signingStyle</key>
             <string>manual</string>
             <key>provisioningProfiles</key>
@@ -83,7 +86,7 @@ jobs:
         run: |
           python3 - << 'PY'
           import re, os
-          team = os.environ["TEAM_ID"]
+          team = os.environ.get("PROFILE_TEAM") or os.environ["TEAM_ID"]
           profile_name = os.environ["PROFILE_NAME"]
           pbj = "ios/App/App.xcodeproj/project.pbxproj"
           with open(pbj, "r", encoding="utf-8") as f:
