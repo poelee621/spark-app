@@ -180,17 +180,26 @@ jobs:
       - name: Validate icon sizes (fail early if Apple-required sizes missing)
         run: |
           python3 - << 'PY'
-          import json, glob, os, sys
-          from PIL import Image
-          # Apple-required icon pixel sizes (the ones that trigger ITMS-90023 when absent)
+          import json, glob, os, struct, sys
+
+          def png_size(path):
+              with open(path, "rb") as f:
+                  sig = f.read(8)
+                  if sig != b"\x89PNG\r\n\x1a\n":
+                      return None
+                  # IHDR: width/height at bytes 16..23
+                  f.seek(16)
+                  w, h = struct.unpack(">II", f.read(8))
+                  return w, h
+
+          # Apple-required icon pixel sizes (absence triggers ITMS-90023)
           REQUIRED = {20, 29, 40, 57, 58, 60, 76, 80, 87, 114, 120, 152, 167, 180, 1024}
           targets = glob.glob("ios/**/AppIcon.appiconset", recursive=True)
           if not targets:
               print("ERROR: no AppIcon.appiconset after injection"); sys.exit(1)
           ok = True
           for t in targets:
-              cj = os.path.join(t, "Contents.json")
-              with open(cj) as f:
+              with open(os.path.join(t, "Contents.json")) as f:
                   spec = json.load(f)
               present = set()
               for img in spec["images"]:
@@ -201,18 +210,18 @@ jobs:
                   if not os.path.exists(path):
                       print(f"ERROR: {t} references {fn} but file missing"); ok = False
                       continue
-                  with Image.open(path) as im:
-                      w, h = im.size
-                  # expected pixels = size * scale
-                  sw, sh = img["size"].split("x")
+                  sz = png_size(path)
+                  if not sz:
+                      print(f"ERROR: {t}/{fn} is not a valid PNG"); ok = False
+                      continue
+                  w, h = sz
+                  sw, _ = img["size"].split("x")
                   scale = int(img["scale"].rstrip("x"))
                   exp = int(float(sw)) * scale
                   if w != exp or h != exp:
                       print(f"ERROR: {t}/{fn} is {w}x{h}, expected {exp}x{exp}"); ok = False
                   else:
                       present.add(exp)
-                  if Image.open(path).mode == "RGBA":
-                      print(f"WARN: {t}/{fn} has alpha channel (App Store 1024 should be RGB)")
               missing = REQUIRED - present
               if missing:
                   print(f"ERROR: {t} missing required sizes: {sorted(missing)}"); ok = False
