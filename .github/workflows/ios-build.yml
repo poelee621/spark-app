@@ -29,6 +29,7 @@ jobs:
           echo "$P12_BASE64" | base64 --decode > dist.p12
           echo "Decoded dist.p12 size: $(stat -f%z dist.p12 2>/dev/null || stat -c%s dist.p12 2>/dev/null)"
           echo "P12_PASSWORD length: ${#P12_PASSWORD}"
+          openssl pkcs12 -in dist.p12 -passin pass:"$P12_PASSWORD" -nokeys -info 2>&1 | head -5
           security create-keychain -p temp build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p temp build.keychain
