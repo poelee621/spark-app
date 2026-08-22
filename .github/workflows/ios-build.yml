@@ -331,10 +331,11 @@ jobs:
                   sys.exit(1)
 
           # Step 4: mark upload complete -> Apple starts processing
-          md5_hex = hashlib.md5(data).hexdigest()
+          # Note: 'sourceFileChecksum' is NOT a valid PATCH attribute for buildUploadFiles
+          #       (Apple returns 409 ENTITY_ERROR.ATTRIBUTE.UNKNOWN). Only 'uploaded' is accepted.
           st4, resp4 = api("PATCH", f"https://api.appstoreconnect.apple.com/v1/buildUploadFiles/{file_id}", {
               "data": {"type": "buildUploadFiles", "id": file_id,
-                       "attributes": {"uploaded": True, "sourceFileChecksum": md5_hex}}})
+                       "attributes": {"uploaded": True}}})
           state4 = resp4.get("data", {}).get("attributes", {}).get("state", "?")
           print(f"STEP4 commit -> status={st4} state={state4}. Upload complete; Apple will now process the build.")
 
