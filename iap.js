@@ -4,7 +4,7 @@
 //   2) 在原生工程(ios/)按 RevenueCat 文档完成原生配置
 //   3) 填入下方 REVENUECAT_API_KEY（建议由后端下发，避免硬编码）
 const IAP = {
-  API_KEY: '',                       // 留空 = 演示模式；填入 RevenueCat 公钥即启用真实内购
+  API_KEY: 'test_cHieRhZHRzWrOeWsJzaDRCwkpWx', // RevenueCat 测试公钥；上架前换成生产 key
   PRODUCT_ID: 'spark_pro_yearly',    // App Store Connect / RevenueCat 中配置的商品 ID
   ENTITLEMENT: 'pro',               // RevenueCat 中 entitlement 标识
   _ready: false,
