@@ -29,7 +29,8 @@ for name, px in icons:
     img = im.resize((px, px), Image.LANCZOS)
     canvas = Image.new("RGBA", (px, px), BG)
     canvas.alpha_composite(img)
-    canvas.save(os.path.join(OUT, name))
+    # App Store requires 1024x1024 icon without alpha channel; save all as RGB to be safe
+    canvas.convert("RGB").save(os.path.join(OUT, name))
     print("wrote", name, px)
 
 contents = '''{
