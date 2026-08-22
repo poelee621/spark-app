@@ -69,19 +69,18 @@ jobs:
           </plist>
           EOF
 
-      - name: Force signing settings in Xcode project
+            - name: Force signing settings in Xcode project
         env:
           TEAM_ID: ${{ secrets.TEAM_ID }}
         run: |
           PBJ="ios/App/App.xcodeproj/project.pbxproj"
-          # Replace empty/bogus development team with real team
-          sed -i '' "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = ${TEAM_ID};/g" "$PBJ" 2>/dev/null || sed -i "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = ${TEAM_ID};/g" "$PBJ"
-          sed -i '' "s/DEVELOPMENT_TEAM = [A-Z0-9]*;/DEVELOPMENT_TEAM = ${TEAM_ID};/g" "$PBJ" 2>/dev/null || sed -i "s/DEVELOPMENT_TEAM = [A-Z0-9]*;/DEVELOPMENT_TEAM = ${TEAM_ID};/g" "$PBJ"
-          # Force manual signing
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBJ" 2>/dev/null || sed -i 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBJ"
-          # Force distribution identity and provisioning profile
-          sed -i '' 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "iPhone Distribution";/g' "$PBJ" 2>/dev/null || sed -i 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "iPhone Distribution";/g' "$PBJ"
+          TMP="${PBJ}.tmp"
+          sed "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = ${TEAM_ID};/g" "$PBJ" > "$TMP" && mv "$TMP" "$PBJ"
+          sed "s/DEVELOPMENT_TEAM = [A-Z0-9]*;/DEVELOPMENT_TEAM = ${TEAM_ID};/g" "$PBJ" > "$TMP" && mv "$TMP" "$PBJ"
+          sed 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBJ" > "$TMP" && mv "$TMP" "$PBJ"
+          sed 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "iPhone Distribution";/g' "$PBJ" > "$TMP" && mv "$TMP" "$PBJ"
           grep -E 'DEVELOPMENT_TEAM|CODE_SIGN_STYLE|CODE_SIGN_IDENTITY' "$PBJ" | head -20
+
 
       - name: Archive
         run: |
