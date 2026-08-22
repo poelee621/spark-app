@@ -132,6 +132,8 @@ jobs:
           xcodebuild -exportArchive -archivePath build/Spark.xcarchive \
             -exportPath build/export -exportOptionsPlist ExportOptions.plist \
             -allowProvisioningUpdates
+          echo "--- exported files ---"
+          ls -la build/export/
 
       - name: Upload IPA to TestFlight (altool)
         env:
@@ -141,11 +143,13 @@ jobs:
         run: |
           mkdir -p "$HOME/.private_keys"
           echo "$APPLE_API_KEY_B64" | base64 --decode > "$HOME/.private_keys/AuthKey_${APPLE_API_KEY_ID}.p8"
-          xcrun altool --upload-app -f build/export/Spark.ipa -t ios \
+          IPA_PATH=$(ls build/export/*.ipa | head -1)
+          echo "IPA_PATH=$IPA_PATH"
+          xcrun altool --upload-app -f "$IPA_PATH" -t ios \
             --apiKey "$APPLE_API_KEY_ID" --apiIssuer "$APPLE_API_ISSUER_ID" --verbose
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: Spark.ipa
-          path: build/export/Spark.ipa
+          path: build/export/*.ipa
