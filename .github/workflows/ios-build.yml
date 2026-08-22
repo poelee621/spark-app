@@ -74,8 +74,9 @@ jobs:
           TEAM_ID: ${{ secrets.TEAM_ID }}
         run: |
           python3 - << 'PY'
-          import re
-          team = "${{ secrets.TEAM_ID }}"
+          import re, os
+          team = os.environ["TEAM_ID"]
+
           pbj = "ios/App/App.xcodeproj/project.pbxproj"
           with open(pbj, "r", encoding="utf-8") as f:
               text = f.read()
