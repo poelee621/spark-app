@@ -14,9 +14,9 @@ build/
 *.p8
 *.cer
 *.b64
-certs_b64.txt
-apple_api_b64.txt
+*_b64.txt
 all_secrets.txt
+ios_*_base64_for_github.txt
 
 # 运行时数据
 entitlements.json
