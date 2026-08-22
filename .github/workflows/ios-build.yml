@@ -177,6 +177,51 @@ jobs:
           echo "--- final verification ---"
           find ios -type d -name "AppIcon.appiconset" -exec sh -c 'echo ">>> $1"; ls "$1"' _ {} \;
 
+      - name: Validate icon sizes (fail early if Apple-required sizes missing)
+        run: |
+          python3 - << 'PY'
+          import json, glob, os, sys
+          from PIL import Image
+          # Apple-required icon pixel sizes (the ones that trigger ITMS-90023 when absent)
+          REQUIRED = {20, 29, 40, 57, 58, 60, 76, 80, 87, 114, 120, 152, 167, 180, 1024}
+          targets = glob.glob("ios/**/AppIcon.appiconset", recursive=True)
+          if not targets:
+              print("ERROR: no AppIcon.appiconset after injection"); sys.exit(1)
+          ok = True
+          for t in targets:
+              cj = os.path.join(t, "Contents.json")
+              with open(cj) as f:
+                  spec = json.load(f)
+              present = set()
+              for img in spec["images"]:
+                  fn = img.get("filename")
+                  if not fn:
+                      continue
+                  path = os.path.join(t, fn)
+                  if not os.path.exists(path):
+                      print(f"ERROR: {t} references {fn} but file missing"); ok = False
+                      continue
+                  with Image.open(path) as im:
+                      w, h = im.size
+                  # expected pixels = size * scale
+                  sw, sh = img["size"].split("x")
+                  scale = int(img["scale"].rstrip("x"))
+                  exp = int(float(sw)) * scale
+                  if w != exp or h != exp:
+                      print(f"ERROR: {t}/{fn} is {w}x{h}, expected {exp}x{exp}"); ok = False
+                  else:
+                      present.add(exp)
+                  if Image.open(path).mode == "RGBA":
+                      print(f"WARN: {t}/{fn} has alpha channel (App Store 1024 should be RGB)")
+              missing = REQUIRED - present
+              if missing:
+                  print(f"ERROR: {t} missing required sizes: {sorted(missing)}"); ok = False
+              print(f"icon set {t}: present sizes={sorted(present)}")
+          if not ok:
+              print("ICON VALIDATION FAILED"); sys.exit(1)
+          print("ICON VALIDATION PASSED: all Apple-required sizes present")
+          PY
+
       - name: Bump build number
         run: |
           PBX="ios/App/App.xcodeproj/project.pbxproj"
