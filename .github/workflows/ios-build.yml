@@ -73,13 +73,38 @@ jobs:
         env:
           TEAM_ID: ${{ secrets.TEAM_ID }}
         run: |
-          PBJ="ios/App/App.xcodeproj/project.pbxproj"
-          TMP="${PBJ}.tmp"
-          sed "s/DEVELOPMENT_TEAM = \"\";/DEVELOPMENT_TEAM = ${TEAM_ID};/g" "$PBJ" > "$TMP" && mv "$TMP" "$PBJ"
-          sed "s/DEVELOPMENT_TEAM = [A-Z0-9]*;/DEVELOPMENT_TEAM = ${TEAM_ID};/g" "$PBJ" > "$TMP" && mv "$TMP" "$PBJ"
-          sed 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBJ" > "$TMP" && mv "$TMP" "$PBJ"
-          sed 's/CODE_SIGN_IDENTITY = "iPhone Developer";/CODE_SIGN_IDENTITY = "iPhone Distribution";/g' "$PBJ" > "$TMP" && mv "$TMP" "$PBJ"
-          grep -E 'DEVELOPMENT_TEAM|CODE_SIGN_STYLE|CODE_SIGN_IDENTITY' "$PBJ" | head -20
+          python3 - << 'PY'
+          import re
+          team = "${{ secrets.TEAM_ID }}"
+          pbj = "ios/App/App.xcodeproj/project.pbxproj"
+          with open(pbj, "r", encoding="utf-8") as f:
+              text = f.read()
+
+          def inject_signing(match):
+              block = match.group(1)
+              if "DEVELOPMENT_TEAM" not in block:
+                  block = block.rstrip("\t\n") + f"\n\t\t\t\tDEVELOPMENT_TEAM = {team};\n"
+              else:
+                  block = re.sub(r'DEVELOPMENT_TEAM = [^;]*;', f'DEVELOPMENT_TEAM = {team};', block)
+              if "CODE_SIGN_STYLE" not in block:
+                  block = block.rstrip("\t\n") + '\t\t\t\tCODE_SIGN_STYLE = Manual;\n'
+              else:
+                  block = re.sub(r'CODE_SIGN_STYLE = [^;]*;', 'CODE_SIGN_STYLE = Manual;', block)
+              if "CODE_SIGN_IDENTITY" not in block:
+                  block = block.rstrip("\t\n") + '\t\t\t\tCODE_SIGN_IDENTITY = "iPhone Distribution";\n'
+              else:
+                  block = re.sub(r'CODE_SIGN_IDENTITY = "[^"]*";', 'CODE_SIGN_IDENTITY = "iPhone Distribution";', block)
+              if "PROVISIONING_PROFILE_SPECIFIER" not in block:
+                  block = block.rstrip("\t\n") + '\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "Spark Distribution Profile";\n'
+              return match.group(0).replace(match.group(1), block)
+
+          text = re.sub(r'buildSettings = \{([^}]Release[^}]*)\};', inject_signing, text, flags=re.DOTALL)
+          with open(pbj, "w", encoding="utf-8") as f:
+              f.write(text)
+          print("Injected signing settings into Release buildSettings blocks")
+          PY
+          grep -E 'DEVELOPMENT_TEAM|CODE_SIGN_STYLE|CODE_SIGN_IDENTITY|PROVISIONING_PROFILE_SPECIFIER' ios/App/App.xcodeproj/project.pbxproj | head -30
+
 
 
       - name: Archive
