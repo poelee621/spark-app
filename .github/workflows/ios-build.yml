@@ -217,7 +217,7 @@ jobs:
                   w, h = sz
                   sw, _ = img["size"].split("x")
                   scale = int(img["scale"].rstrip("x"))
-                  exp = int(float(sw)) * scale
+                  exp = round(float(sw) * scale)
                   if w != exp or h != exp:
                       print(f"ERROR: {t}/{fn} is {w}x{h}, expected {exp}x{exp}"); ok = False
                   else:
