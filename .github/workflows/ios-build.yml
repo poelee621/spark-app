@@ -210,13 +210,22 @@ jobs:
 
       - name: Verify build number in IPA
         run: |
+          set -e
           IPA_PATH=$(ls build/export/*.ipa | head -1)
           echo "IPA_PATH=$IPA_PATH"
+          rm -f /tmp/ipa_info.plist
           unzip -p "$IPA_PATH" "Payload/*.app/Info.plist" > /tmp/ipa_info.plist 2>/dev/null || \
           unzip -p "$IPA_PATH" "Payload/App.app/Info.plist" > /tmp/ipa_info.plist
           echo "--- CFBundleVersion / CFBundleShortVersionString inside final IPA ---"
-          plutil -p /tmp/ipa_info.plist | grep -E 'CFBundleVersion|CFBundleShortVersionString' || true
-          echo "--- expected build number: ${{ github.run_number }} ---"
+          plutil -p /tmp/ipa_info.plist | grep -E 'CFBundleVersion|CFBundleShortVersionString'
+          ACTUAL=$(plutil -extract CFBundleVersion raw /tmp/ipa_info.plist)
+          EXPECTED=${{ github.run_number }}
+          echo "EXPECTED_CFBundleVersion=$EXPECTED"
+          echo "ACTUAL_CFBundleVersion=$ACTUAL"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "ERROR: CFBundleVersion mismatch (expected $EXPECTED, got $ACTUAL)"
+            exit 1
+          fi
 
       - name: Upload IPA to TestFlight (altool)
         env:
@@ -229,7 +238,10 @@ jobs:
           IPA_PATH=$(ls build/export/*.ipa | head -1)
           echo "IPA_PATH=$IPA_PATH"
           xcrun altool --upload-app -f "$IPA_PATH" -t ios \
-            --apiKey "$APPLE_API_KEY_ID" --apiIssuer "$APPLE_API_ISSUER_ID" --verbose
+            --apiKey "$APPLE_API_KEY_ID" --apiIssuer "$APPLE_API_ISSUER_ID" \
+            --output-format xml --verbose | tee /tmp/altool_result.xml
+          echo "--- altool xml output ---"
+          cat /tmp/altool_result.xml
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
