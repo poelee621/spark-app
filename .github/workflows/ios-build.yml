@@ -42,8 +42,16 @@ jobs:
         run: |
           echo "PROFILE_BASE64 length: ${#PROFILE_BASE64}"
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          echo "$PROFILE_BASE64" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/Spark_Distribution.mobileprovision"
-          echo "Decoded profile size: $(stat -f%z "$HOME/Library/MobileDevice/Provisioning Profiles/Spark_Distribution.mobileprovision" 2>/dev/null || stat -c%s "$HOME/Library/MobileDevice/Provisioning Profiles/Spark_Distribution.mobileprovision" 2>/dev/null)"
+          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/Spark_Distribution.mobileprovision"
+          echo "$PROFILE_BASE64" | base64 --decode > "$PROFILE_PATH"
+          echo "Decoded profile size: $(stat -f%z "$PROFILE_PATH" 2>/dev/null || stat -c%s "$PROFILE_PATH" 2>/dev/null)"
+          security cms -D -i "$PROFILE_PATH" > /tmp/profile.plist
+          PROFILE_NAME=$(plutil -extract Name raw /tmp/profile.plist)
+          PROFILE_UUID=$(plutil -extract UUID raw /tmp/profile.plist)
+          echo "PROFILE_NAME=$PROFILE_NAME"
+          echo "PROFILE_UUID=$PROFILE_UUID"
+          echo "PROFILE_NAME=$PROFILE_NAME" >> "$GITHUB_ENV"
+          echo "PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
 
       - name: Prepare export options
         env:
@@ -63,7 +71,7 @@ jobs:
             <key>provisioningProfiles</key>
             <dict>
               <key>com.coldtank.spark</key>
-              <string>Spark Distribution Profile</string>
+              <string>${PROFILE_NAME}</string>
             </dict>
           </dict>
           </plist>
@@ -76,6 +84,7 @@ jobs:
           python3 - << 'PY'
           import re, os
           team = os.environ["TEAM_ID"]
+          profile_name = os.environ["PROFILE_NAME"]
           pbj = "ios/App/App.xcodeproj/project.pbxproj"
           with open(pbj, "r", encoding="utf-8") as f:
               text = f.read()
@@ -95,7 +104,8 @@ jobs:
               else:
                   block = re.sub(r'CODE_SIGN_IDENTITY = "[^"]*";', 'CODE_SIGN_IDENTITY = "iPhone Distribution";', block)
               if "PROVISIONING_PROFILE_SPECIFIER" not in block:
-                  block = block.rstrip("\t\n") + '\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "Spark Distribution Profile";\n'
+                  block = block.rstrip("\t\n") + f'\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "{profile_name}";\n'
+
               return match.group(0).replace(match.group(1), block)
 
           text = re.sub(r'buildSettings = \{([^}]*)\};', inject_signing, text, flags=re.DOTALL)
