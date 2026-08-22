@@ -138,10 +138,16 @@ jobs:
 
       - name: Inject custom app icon
         run: |
-          rm -rf ios/App/App/Assets.xcassets/AppIcon.appiconset
-          cp -r app-icon/AppIcon.appiconset ios/App/App/Assets.xcassets/AppIcon.appiconset
-          echo "--- AppIcon.appiconset after inject ---"
-          ls -la ios/App/App/Assets.xcassets/AppIcon.appiconset
+          echo "--- locating all AppIcon.appiconset directories ---"
+          find ios -type d -name "AppIcon.appiconset" 2>/dev/null
+          echo "--- injecting custom icons into every found set ---"
+          for target in $(find ios -type d -name "AppIcon.appiconset" 2>/dev/null); do
+            rm -rf "$target"
+            cp -r app-icon/AppIcon.appiconset "$target"
+            echo "injected: $target"
+          done
+          echo "--- verifying final contents ---"
+          find ios -type d -name "AppIcon.appiconset" -exec sh -c 'echo ">>> $1"; ls -la "$1"' _ {} \;
 
       - name: Archive
         run: |
