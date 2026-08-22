@@ -233,11 +233,9 @@ jobs:
           APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
           APPLE_API_KEY_B64: ${{ secrets.APPLE_API_KEY_B64 }}
         run: |
-          mkdir -p "$HOME/.private_keys"
-          echo "$APPLE_API_KEY_B64" | base64 --decode > "$HOME/.private_keys/AuthKey_${APPLE_API_KEY_ID}.p8"
           python3 -m pip install --quiet cryptography >/dev/null 2>&1 || pip3 install --quiet cryptography >/dev/null 2>&1 || true
           python3 - << 'PY'
-          import os, base64, time, json, sys, subprocess, urllib.request, urllib.error
+          import os, base64, time, json, sys, subprocess, urllib.request, urllib.error, hashlib
           from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
           from cryptography.hazmat.primitives.asymmetric import ec
           from cryptography.hazmat.primitives import hashes, serialization
@@ -322,6 +320,8 @@ jobs:
               o = op["offset"]; l = op["length"]; url = op["url"]
               chunk = data[o:o + l]
               hd = dict(op.get("headers", {}))
+              # remove conflicting Content-Length if present; urllib will set correct one
+              hd.pop("Content-Length", None)
               req = urllib.request.Request(url, data=chunk, method="PUT", headers=hd)
               try:
                   with urllib.request.urlopen(req, timeout=600) as resp:
@@ -331,9 +331,24 @@ jobs:
                   sys.exit(1)
 
           # Step 4: mark upload complete -> Apple starts processing
-          st4, _ = api("PATCH", f"https://api.appstoreconnect.apple.com/v1/buildUploadFiles/{file_id}", {
-              "data": {"type": "buildUploadFiles", "id": file_id, "attributes": {"uploaded": True}}})
-          print(f"STEP4 commit -> {st4}. Upload complete; Apple will now process the build.")
+          md5_hex = hashlib.md5(data).hexdigest()
+          st4, resp4 = api("PATCH", f"https://api.appstoreconnect.apple.com/v1/buildUploadFiles/{file_id}", {
+              "data": {"type": "buildUploadFiles", "id": file_id,
+                       "attributes": {"uploaded": True, "sourceFileChecksum": md5_hex}}})
+          state4 = resp4.get("data", {}).get("attributes", {}).get("state", "?")
+          print(f"STEP4 commit -> status={st4} state={state4}. Upload complete; Apple will now process the build.")
+
+          # Step 5: poll buildUploadFile state for a few seconds (gives immediate Apple-side feedback)
+          print("--- polling buildUploadFile state ---")
+          for attempt in range(6):
+              time.sleep(10)
+              _, r = api("GET", f"https://api.appstoreconnect.apple.com/v1/buildUploadFiles/{file_id}")
+              attrs = r.get("data", {}).get("attributes", {})
+              print(f"  poll {attempt+1}: state={attrs.get('state')} assetDeliveryState={attrs.get('assetDeliveryState')} "
+                    f"sourceFileChecksums={attrs.get('sourceFileChecksums')}")
+              if attrs.get("state") == "FAILED":
+                  print("ERROR: Apple marked build upload file as FAILED")
+                  sys.exit(1)
           PY
 
       - name: Verify builds on Apple server (ground truth)
@@ -353,9 +368,8 @@ jobs:
 
           key_id = os.environ["APPLE_API_KEY_ID"]
           issuer = os.environ["APPLE_API_ISSUER_ID"]
-          p8 = os.path.expanduser(f"$HOME/.private_keys/AuthKey_{key_id}.p8")
-          with open(p8, "rb") as f:
-              key = serialization.load_pem_private_key(f.read(), password=None)
+          key_pem = base64.b64decode(os.environ["APPLE_API_KEY_B64"])
+          key = serialization.load_pem_private_key(key_pem, password=None)
 
           def b64url(b):
               return base64.urlsafe_b64encode(b).rstrip(b"=").decode()
