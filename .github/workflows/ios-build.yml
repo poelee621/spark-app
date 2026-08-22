@@ -136,6 +136,13 @@ jobs:
           echo "--- first Release buildSettings block ---"
           awk '/name = Release;/{p=1} p&&/buildSettings = \{/{b=1} b{print} /\};/{if(b){b=0; p=0; exit}}' ios/App/App.xcodeproj/project.pbxproj
 
+      - name: Inject custom app icon
+        run: |
+          rm -rf ios/App/App/Assets.xcassets/AppIcon.appiconset
+          cp -r app-icon/AppIcon.appiconset ios/App/App/Assets.xcassets/AppIcon.appiconset
+          echo "--- AppIcon.appiconset after inject ---"
+          ls -la ios/App/App/Assets.xcassets/AppIcon.appiconset
+
       - name: Archive
         run: |
           xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release \
