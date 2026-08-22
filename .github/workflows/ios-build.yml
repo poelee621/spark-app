@@ -25,7 +25,10 @@ jobs:
           P12_BASE64: ${{ secrets.IOS_P12_BASE64 }}
           P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
         run: |
+          echo "P12_BASE64 length: ${#P12_BASE64}"
           echo "$P12_BASE64" | base64 --decode > dist.p12
+          echo "Decoded dist.p12 size: $(stat -f%z dist.p12 2>/dev/null || stat -c%s dist.p12 2>/dev/null)"
+          echo "P12_PASSWORD length: ${#P12_PASSWORD}"
           security create-keychain -p temp build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p temp build.keychain
