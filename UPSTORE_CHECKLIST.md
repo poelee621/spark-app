@@ -7,7 +7,7 @@
 
 ## ✅ 当前进度
 - [x] Apple Developer Program 注册（$99/年）
-- [ ] 创建 App 记录（Bundle ID: `com.coldtank.spark`）
+- [x] 创建 App 记录（Bundle ID: `com.coldtank.spark`）
 - [ ] 生成证书 + 描述文件
 - [ ] 配置打包与上传（本地 Xcode 或 GitHub Actions）
 - [ ] 部署订阅后端 + 隐私政策 URL

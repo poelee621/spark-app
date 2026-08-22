@@ -7,9 +7,8 @@ compatibility_date = "2024-09-23"
 # APPLE_SHARED_SECRET = "你的 Apple 共享密钥（App Store Connect → App 内购买项目 → 共享密钥）"
 # RC_WEBHOOK_SECRET  = "你的 RevenueCat Webhook 共享密钥（RevenueCat → Apps → 你的 App → Webhooks）"
 
-# 持久化会员状态（可选但推荐）：
-# 1) 创建命名空间：wrangler kv namespace create SPARK_KV
-# 2) 把返回的 id 填到下面的 id
-# [[kv_namespaces]]
-# binding = "SPARK_KV"
-# id = "这里填你的KV命名空间ID"
+# 持久化会员状态（已创建命名空间，id 见下）：
+# 创建命令：wrangler kv namespace create SPARK_KV
+[[kv_namespaces]]
+binding = "SPARK_KV"
+id = "83fab8acdd6b4c9cb0dd7c64938ab804"

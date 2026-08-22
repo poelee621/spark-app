@@ -104,7 +104,12 @@ npx cap open ios     # 用 Xcode 打开
 - [x] 小9 完成 App Store 截图模板（screenshots/index.html）+ 1024 图标 PNG
 - [x] 小9 完成隐私政策页（app/privacy.html）+ 小红书封面模板（content/covers.html）+ 预览视频脚本（content/preview_video_script.md）
 - [x] 坡哥注册 Apple Developer Program（$99）✅ 2026-08-21
-- [ ] 坡哥按 `UPSTORE_CHECKLIST.md` 走：Bundle ID → App Store Connect 建 App → 证书/描述文件 → 打包（本地或 Actions）→ TestFlight → 提交审核
-- [ ] 坡哥注册 Cloudflare 免费账号，`wrangler login && wrangler deploy` 部署订阅后端，并在 RC 填 Webhook；用 Cloudflare Pages 托管 privacy.html
-- [ ] 坡哥在 RevenueCat / App Store Connect 配置商品（spark_pro_monthly / spark_pro_yearly）并填 API Key
+- [x] 坡哥注册 Cloudflare 免费账号，`wrangler deploy` 部署订阅后端 ✅ 2026-08-21
+      Worker 公网地址：**https://spark-subscription-worker.1012425851.workers.dev**
+      Webhook 接收地址：`https://spark-subscription-worker.1012425851.workers.dev/webhook/revenuecat`
+      会员查询：`https://spark-subscription-worker.1012425851.workers.dev/entitlements/:id`
+- [x] Worker 配置完成：`RC_WEBHOOK_SECRET` 已设；`SPARK_KV` 已绑定（id: `83fab8acdd6b4c9cb0dd7c64938ab804`）；`APPLE_SHARED_SECRET` 待 Apple 激活后补。
+- [x] RevenueCat 配置完成 ✅ 2026-08-21：商品 `spark_pro_monthly` / `spark_pro_yearly` 已建，entitlement `pro` 已挂，Webhook 已填并测试返回 `200`。
+- [x] RC 测试 API key 已填入 `app/iap.js` 的 `API_KEY`（上架前换生产 key）。
+- [ ] 坡哥按 `UPSTORE_CHECKLIST.md` 走：Bundle ID → App Store Connect 建 App → 证书/描述文件 → 打包（Actions 云构建）→ TestFlight → 提交审核
 - [ ] 用真实 App 界面替换截图模板，录预览视频，导出上架素材
