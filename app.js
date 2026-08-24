@@ -63,6 +63,16 @@ function render(r, source) {
     if (r.outro) h += '<div class="bodyText">' + r.outro + '</div>';
     if (r.golden) h += '<div class="golden" style="margin-top:10px">' + r.golden + '</div>';
     h += '</div>';
+  } else if (plat === 'video' || r.plat === 'video') {
+    // 短视频：显示分镜头口播脚本，可照着拍
+    h += '<div class="sec"><h4><span class="dot"></span>口播文案（可照着拍）<span class="copy" onclick="copyArticle(this)">复制全文</span></h4>';
+    h += '<div class="bodyText" style="font-size:15px;line-height:1.7">';
+    h += '<b style="color:var(--acc)">开场钩子：</b>' + (r.hook || '') + '<br><br>';
+    (r.script || []).forEach(s => {
+      h += '<b style="color:var(--acc)">' + s.shot + '</b>' + s.text + '<br><br>';
+    });
+    h += '</div></div>';
+    if (r.golden) h += '<div class="sec"><h4><span class="dot"></span>金句（可做封面/字幕）</h4><div class="golden">' + r.golden + '</div></div>';
   } else if (plat === 'xhs' || r.plat === 'xhs') {
     // 小红书：显示可直接发布的笔记内容（痛点+干货+正文+金句），不再显示元教程大纲
     h += '<div class="sec"><h4><span class="dot"></span>正文（可直接发笔记）</h4><div class="bodyText">' + (r.body || '').replace(/\n/g, '<br>') + '</div></div>';

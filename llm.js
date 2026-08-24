@@ -41,8 +41,26 @@ const LLM = {
   "golden": "一句可做封面的金句"
 }`;
     }
-    // 小红书：返回可直接发布笔记的内容，不是"如何写小红书"的教程
+    // 小红书/短视频：返回可直接发布的内容，不是"如何写"的元教程
     const isXhs = plat === 'xhs';
+    const isVideo = plat === 'video';
+    if (isVideo) {
+      return `你是一名资深短视频编导。请围绕主题「${topic}」，创作一条${sname}风格的短视频口播脚本（总时长约60秒）。
+要求：必须围绕主题写真实口播内容，绝不能写成"如何拍短视频"的教程。每句话都要口语化、有镜头感、适合直接对着镜头念。
+严格只返回一个 JSON 对象，不要任何解释或 markdown 代码块：
+{
+  "titles": ["3个短视频爆款标题，口语化、短、有冲击"],
+  "hook": "3秒开场钩子（直接抓眼球）",
+  "script": [
+    {"shot": "【钩子 0-3s】", "text": "开场台词，直击主题"},
+    {"shot": "【冲突/反转 3-15s】", "text": "制造冲突或抛出反常识观点"},
+    {"shot": "【干货 15-40s】", "text": "核心内容，具体、有信息量"},
+    {"shot": "【金句 40-50s】", "text": "一句值得传播的总结"},
+    {"shot": "【引导 50-60s】", "text": "引导点赞/关注/评论"}
+  ],
+  "golden": "一句可做封面或字幕的金句"
+}`;
+    }
     return `你是一名资深中文新媒体编辑。请围绕主题「${topic}」，为${pname}创作一篇${sname}风格的内容包。
 ${isXhs ? '这是小红书笔记：必须围绕主题写真实内容，绝不能写成"如何写小红书"的教程。' : ''}
 严格只返回一个 JSON 对象，不要任何解释或 markdown 代码块：
@@ -99,6 +117,12 @@ ${isXhs ? '这是小红书笔记：必须围绕主题写真实内容，绝不能
           golden: obj.golden || '',
           plat: 'xhs'
         };
+      }
+      if (plat === 'video') {
+        const hook = obj.hook || '';
+        const script = Array.isArray(obj.script) ? obj.script : [];
+        const body = hook + '\n\n' + script.map(s => s.shot + ' ' + s.text).join('\n\n');
+        return { topic, titles: obj.titles, hook, script, body, golden: obj.golden || '', plat: 'video' };
       }
       return { topic, titles: obj.titles, outline: obj.outline || [], body: obj.body || '', golden: obj.golden || '' };
     } catch (e) {
