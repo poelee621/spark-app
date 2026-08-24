@@ -158,13 +158,21 @@ function showViewer(item) {
   $('#viewer').classList.add('on');
 }
 
+// 清洗主题：去掉首尾空格、前缀"关于"、末尾标点，避免正文出现"关于「关于...」"
+function normalizeTopic(raw) {
+  let t = (raw || '').trim();
+  if (t.toLowerCase().startsWith('关于')) t = t.slice(2).trim();
+  t = t.replace(/[。！？?！.!]+$/, '').trim();
+  return t || '这件事';
+}
+
 // generate orchestration
 async function generate() {
   if (!isVIP()) {
     if (used >= LIMIT) { toast('今日免费次数已用完（' + LIMIT + ' 次），明天再来或去「会员」解锁无限生成 🚀'); return; }
     used++; setUsed(used); refreshCounter();
   }
-  const topic = $('#topic').value;
+  const topic = normalizeTopic($('#topic').value);
   $('#out').innerHTML = '<div class="empty"><span class="spin"></span>正在生成内容…</div>';
   $('#xhsCard').style.display = 'none';
   $('#wcCard').style.display = 'none';
