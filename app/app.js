@@ -24,8 +24,14 @@ document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
 });
 
 // chips
-$('#platRow').onclick = e => { if (e.target.dataset.v) { sel('#platRow', e.target); plat = e.target.dataset.v; } };
-$('#styleRow').onclick = e => { if (e.target.dataset.v) { sel('#styleRow', e.target); style = e.target.dataset.v; } };
+const rowClick = (row, key) => e => {
+  const el = e.target.closest('.chip');   // 点到 emoji/文字都能命中父芯片
+  if (!el || !el.dataset.v) return;
+  sel(row, el);
+  if (key === 'plat') plat = el.dataset.v; else style = el.dataset.v;
+};
+$('#platRow').onclick = rowClick('#platRow', 'plat');
+$('#styleRow').onclick = rowClick('#styleRow', 'style');
 function sel(row, el) { document.querySelectorAll(row + ' .chip').forEach(c => c.classList.remove('on')); el.classList.add('on'); }
 
 // VIP state
