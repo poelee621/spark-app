@@ -155,6 +155,10 @@ function renderWechatCover(r) {
 function renderWechatCoverHTML(r) {
   const card = $('#wcCard');
   card.style.display = 'block';
+  $('#coverTag').textContent = '📢 公众号封面';
+  $('#coverTip').textContent = '大模型生成 HTML 封面';
+  $('#wcSave').textContent = '保存封面为图片';
+  $('#wcCover').classList.remove('video');
   $('#wcCover').innerHTML = '<div class="html-box">' + (r.coverHtml || '') + '</div>';
 }
 function renderXhsCardsHTML(r) {
@@ -170,8 +174,11 @@ function renderXhsCardsHTML(r) {
 function renderVideoThumbHTML(r) {
   const card = $('#wcCard'); // 复用封面卡片位置展示视频缩略
   card.style.display = 'block';
+  $('#coverTag').textContent = '🎬 视频封面';
+  $('#coverTip').textContent = '大模型生成 9:16 竖屏封面';
+  $('#wcSave').textContent = '保存视频封面';
+  $('#wcCover').classList.add('video');
   $('#wcCover').innerHTML = '<div class="html-box">' + (r.thumbHtml || '') + '</div>';
-  $('#wcSave').textContent = '保存封面为图片';
 }
 
 // 把 HTML 视觉节点转成图片（html2canvas），供长按保存到相册
@@ -213,6 +220,7 @@ async function generate() {
   $('#out').innerHTML = '<div class="empty"><span class="spin"></span>正在生成内容…</div>';
   $('#xhsCard').style.display = 'none';
   $('#wcCard').style.display = 'none';
+  $('#wcCover').classList.remove('video');
   let result = null;
   try {
     if (LLM.enabled()) {

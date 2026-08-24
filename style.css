@@ -115,12 +115,18 @@ input:focus,textarea:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0
 .viewer img{max-width:88%;max-height:82%;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
 .viewer-tip{color:#fff8;font-size:12px;margin-top:14px;text-align:center}
 
-/* ===== 公众号封面 ===== */
+/* ===== 公众号/视频封面 ===== */
 .wc-card{border-color:rgba(91,118,255,.4);background:linear-gradient(180deg,rgba(91,118,255,.06),#f8fafe 60%)}
 .wc-tag{color:var(--acc)}
 .wc-cover{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);
-  cursor:pointer;aspect-ratio:900/383;background:var(--card2)}
+  cursor:pointer;background:var(--card2);min-height:120px}
+/* 默认公众号横屏比例；视频竖屏由 JS 加 .video 类切换 */
+.wc-cover:not(.video){aspect-ratio:900/383}
+.wc-cover.video{aspect-ratio:9/16;max-width:360px;margin:0 auto;background:#0f0f0f}
 .wc-cover img{width:100%;height:100%;object-fit:cover;display:block}
+/* HTML 封面内容自适应，避免被容器比例裁切 */
+.wc-cover .html-box{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.wc-cover .html-box > *{width:100%;height:100%;display:block}
 .wc-badge{position:absolute;top:8px;left:8px;font-size:10px;font-weight:800;color:#fff;
   background:rgba(91,118,255,.85);padding:3px 9px;border-radius:10px}
 
