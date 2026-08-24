@@ -6,6 +6,6 @@ compatibility_date = "2024-11-01"
 # 1) 执行：wrangler kv namespace create RATE
 # 2) 把返回的 id 填到下面的 id 字段，并去掉整体注释
 # 若不绑定 KV，worker 仍可工作，只是不做每日限流（有被刷风险）。
-# [[kv_namespaces]]
-# binding = "RATE"
-# id = "REPLACE_WITH_YOUR_KV_ID"
+[[kv_namespaces]]
+binding = "RATE"
+id = "3376a28b22f848a39cc7091fe28dfe4f"
