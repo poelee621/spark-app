@@ -6,7 +6,7 @@
 
 // ===== 平台 AI 代理（Cloudflare Worker）=====
 // 部署后把下面替换成你的真实 worker 地址；保留占位符则视为「代理未部署」，自动回退。
-const PROXY_URL = 'https://spark-deepseek-proxy.YOURSUB.workers.dev/v1/chat/completions';
+const PROXY_URL = 'https://spark-deepseek-proxy.1012425851.workers.dev/v1/chat/completions';
 const PROXY_PLACEHOLDER = /YOURSUB|YOUR-WORKER|example\.com/i;
 
 const LLM = {
