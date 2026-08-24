@@ -112,19 +112,17 @@ function renderXhsCards(r) {
   requestAnimationFrame(next);
 }
 
-// ---- 公众号封面：生成 900×383 头条封面 ----
+// ---- 公众号封面：生成 900×383 头条封面（同步、瞬时） ----
 function renderWechatCover(r) {
   const card = $('#wcCard');
   card.style.display = 'block';
-  setTimeout(() => {
-    try {
-      const url = WechatCover.generate(r);
-      $('#wcImg').src = url;
-    } catch (e) {
-      card.style.display = 'none';
-      toast('封面生成失败：' + e.message);
-    }
-  }, 30);
+  try {
+    const url = WechatCover.generate(r);
+    $('#wcImg').src = url;
+  } catch (e) {
+    card.style.display = 'none';
+    toast('封面生成失败：' + e.message);
+  }
 }
 
 // 全屏预览（长按/点击查看大图，iOS 上长按图片可保存到相册）
@@ -166,10 +164,7 @@ async function generate() {
     }
     // 平台专属：小红书 4 图 / 公众号封面
     if (plat === 'xhs') renderXhsCards(result);
-    if (plat === 'wechat') {
-      $('#out').insertAdjacentHTML('beforeend', '<div class="empty" style="margin-top:10px"><span class="spin"></span>正在绘制公众号封面…</div>');
-      renderWechatCover(result);
-    }
+    if (plat === 'wechat') renderWechatCover(result);
   } catch (e) {
     $('#out').innerHTML = '<div class="empty">生成失败：' + e.message + '<br>建议检查网络或清除 AI Key 用规则引擎重试</div>';
     toast('生成失败：' + e.message);
