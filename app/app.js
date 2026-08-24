@@ -89,23 +89,27 @@ function copyArticle(el) {
   toast('全文已复制（Markdown 格式）✓');
 }
 
-// ---- 小红书图文：生成 4 张 3:4 卡片并展示 ----
+// ---- 小红书图文：生成 4 张 3:4 卡片并展示（分帧绘制，避免卡 UI） ----
 function renderXhsCards(r) {
   const card = $('#xhsCard'), grid = $('#xhsGrid');
   card.style.display = 'block';
-  grid.innerHTML = '<div class="xhs-loading"><span class="spin"></span>正在绘制 4 张图文卡片…</div>';
-  // 让 loading 先上屏，再同步绘制
-  setTimeout(() => {
-    try {
-      const urls = XhsCards.generate(r);
-      grid.innerHTML = urls.map((u, i) =>
+  grid.innerHTML = '<div class="xhs-loading"><span class="spin"></span>正在绘制图文卡片 ' + 0 + '/4 …</div>';
+  const urls = [];
+  let i = 0;
+  const next = () => {
+    if (i >= 4) {
+      grid.innerHTML = urls.map((u, n) =>
         '<div class="xhs-item" onclick="showViewer(this)">' +
-        '<img src="' + u + '" alt="图文卡 ' + (i + 1) + '" />' +
-        '<span class="no">' + (i + 1) + '/4</span></div>').join('');
-    } catch (e) {
-      grid.innerHTML = '<div class="xhs-loading">图片生成失败：' + e.message + '</div>';
+        '<img src="' + u + '" alt="图文卡 ' + (n + 1) + '" />' +
+        '<span class="no">' + (n + 1) + '/4</span></div>').join('');
+      return;
     }
-  }, 30);
+    grid.innerHTML = '<div class="xhs-loading"><span class="spin"></span>正在绘制图文卡片 ' + (i + 1) + '/4 …</div>';
+    try { urls.push(XhsCards.generateOne(r, i)); i++; }
+    catch (e) { grid.innerHTML = '<div class="xhs-loading">图片生成失败：' + e.message + '</div>'; return; }
+    requestAnimationFrame(next); // 每张间隔一帧，UI 保持响应
+  };
+  requestAnimationFrame(next);
 }
 
 // ---- 公众号封面：生成 900×383 头条封面 ----

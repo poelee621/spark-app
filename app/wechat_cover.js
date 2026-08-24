@@ -82,6 +82,7 @@ const WechatCover = {
     ctx.fillStyle = '#fff'; ctx.font = '800 22px ' + this.FONT; ctx.textAlign = 'center';
     ctx.fillText('S', this.W - 70, this.H - 52);
 
-    return c.toDataURL('image/png');
+    // JPEG 输出（无透明需求，编码更快）
+    return c.toDataURL('image/jpeg', 0.92);
   }
 };
