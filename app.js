@@ -1,6 +1,20 @@
 const $ = s => document.querySelector(s);
 let plat = 'wechat', style = 'sharp', used = 0;
-const LIMIT = 3;
+const LIMIT = 10; // 免费版每日次数（v0.3 起 3 → 10）
+
+// ---- 每日计数（按本地日期重置） ----
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function getUsed() {
+  if (localStorage.getItem('spark_used_date') !== todayStr()) return 0;
+  return parseInt(localStorage.getItem('spark_used') || '0', 10) || 0;
+}
+function setUsed(n) {
+  localStorage.setItem('spark_used_date', todayStr());
+  localStorage.setItem('spark_used', String(n));
+}
 
 // tabs
 document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
@@ -18,8 +32,9 @@ function sel(row, el) { document.querySelectorAll(row + ' .chip').forEach(c => c
 function isVIP() { return localStorage.getItem('spark_vip') === '1'; }
 function refreshCounter() {
   if (isVIP()) { $('#counter').textContent = 'Pro 会员 · 无限生成'; return; }
-  $('#counter').textContent = `今日免费生成 ${used}/${LIMIT} 次`;
+  $('#counter').textContent = `今日免费生成 ${used}/${LIMIT} 次（每日重置）`;
 }
+used = getUsed();
 refreshCounter();
 
 // render unified result {titles, outline, body, golden}
@@ -40,23 +55,56 @@ function render(r, source) {
   $('#out').innerHTML = h;
 }
 
+// ---- 小红书图文：生成 4 张 3:4 卡片并展示 ----
+function renderXhsCards(r) {
+  const card = $('#xhsCard'), grid = $('#xhsGrid');
+  card.style.display = 'block';
+  grid.innerHTML = '<div class="xhs-loading"><span class="spin"></span>正在绘制 4 张图文卡片…</div>';
+  // 让 loading 先上屏，再同步绘制
+  setTimeout(() => {
+    try {
+      const urls = XhsCards.generate(r);
+      grid.innerHTML = urls.map((u, i) =>
+        '<div class="xhs-item" onclick="showViewer(this)">' +
+        '<img src="' + u + '" alt="图文卡 ' + (i + 1) + '" />' +
+        '<span class="no">' + (i + 1) + '/4</span></div>').join('');
+    } catch (e) {
+      grid.innerHTML = '<div class="xhs-loading">图片生成失败：' + e.message + '</div>';
+    }
+  }, 30);
+}
+// 全屏预览（长按/点击查看大图，iOS 上长按图片可保存到相册）
+function showViewer(item) {
+  const img = item.querySelector('img');
+  $('#viewerImg').src = img.src;
+  $('#viewer').classList.add('on');
+}
+
 // generate orchestration
 async function generate() {
   if (!isVIP()) {
-    if (used >= LIMIT) { toast('今日免费次数已用完，去「会员」解锁无限生成 🚀'); return; }
-    used++; localStorage.setItem('spark_used', used); refreshCounter();
+    if (used >= LIMIT) { toast('今日免费次数已用完（' + LIMIT + ' 次），明天再来或去「会员」解锁无限生成 🚀'); return; }
+    used++; setUsed(used); refreshCounter();
   }
   const topic = $('#topic').value;
   $('#out').innerHTML = '<div class="empty">生成中…</div>';
+  $('#xhsCard').style.display = 'none';
+  let result = null;
   if (LLM.enabled()) {
     try {
-      const r = await LLM.call(plat, style, topic);
-      render(r, 'ai'); return;
+      result = await LLM.call(plat, style, topic);
+      render(result, 'ai');
     } catch (e) {
       toast('AI 调用失败，已降级规则引擎：' + e.message);
+      result = null;
     }
   }
-  render(Generator.generate(plat, style, topic), 'rule');
+  if (!result) {
+    result = Generator.generate(plat, style, topic);
+    render(result, 'rule');
+  }
+  // 小红书平台额外生成 4 张图文卡片
+  if (plat === 'xhs') renderXhsCards(result);
 }
 $('#genBtn').onclick = generate;
 
