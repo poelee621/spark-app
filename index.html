@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>闪写 Spark · 中文创作灵感助手</title>
 <link rel="stylesheet" href="style.css" />
+<style>
+  /* HTML 封面 / 卡片：大模型返回的内联样式片段，强制自适应容器 */
+  .html-box { width: 100%; border-radius: 14px; overflow: hidden; background: #111; }
+  .html-box > * { width: 100% !important; height: auto !important; display: block; }
+  .aiHint { font-size: 12px; line-height: 1.6; padding: 9px 12px; border-radius: 10px; margin: 4px 0 12px; }
+  .aiHint.warn { background: #fff6e6; color: #8a5a00; border: 1px solid #ffd591; }
+  .aiHint.ok { background: #e9f9ee; color: #1a7a3c; border: 1px solid #b7ebc6; }
+  .btn.xs { font-size: 12px; padding: 7px 12px; margin-top: 6px; }
+</style>
 </head>
 <body>
 <div class="phone">
@@ -18,13 +27,13 @@
   <nav class="tabs">
     <div class="tab on" data-p="create"><span class="t-ico">✍️</span>创作</div>
     <div class="tab" data-p="vip"><span class="t-ico">👑</span>会员</div>
-    <div class="tab" data-p="ai"><span class="t-ico">🤖</span>AI</div>
     <div class="tab" data-p="about"><span class="t-ico">ℹ️</span>关于</div>
   </nav>
 
   <main>
     <!-- 创作 -->
     <section class="panel on" id="create">
+      <div class="aiHint warn" id="aiHint">未配置 Key，当前为规则引擎（质量较差）。去「关于」页粘贴 DeepSeek Key 启用大模型。</div>
       <div class="card">
         <label>① 选择平台</label>
         <div class="row" id="platRow">
@@ -57,7 +66,7 @@
       <div class="card xhs-card" id="xhsCard" style="display:none">
         <div class="xhs-head">
           <span class="xhs-tag">📕 小红书图文</span>
-          <span class="xhs-tip">长按图片可保存到相册</span>
+          <span class="xhs-tip">可保存为图片</span>
         </div>
         <div class="xhs-grid" id="xhsGrid"></div>
       </div>
@@ -66,12 +75,10 @@
       <div class="card wc-card" id="wcCard" style="display:none">
         <div class="xhs-head">
           <span class="xhs-tag wc-tag">📢 公众号封面</span>
-          <span class="xhs-tip">长按图片可保存 · 900×383 头条尺寸</span>
+          <span class="xhs-tip">大模型生成 HTML 封面</span>
         </div>
-        <div class="wc-cover" id="wcCover" onclick="showViewer(this)">
-          <img id="wcImg" alt="公众号封面" />
-          <span class="wc-badge">封面</span>
-        </div>
+        <div class="wc-cover" id="wcCover"></div>
+        <button class="btn ghost" id="wcSave" style="margin-top:8px">保存封面为图片</button>
       </div>
     </section>
 
@@ -111,13 +118,13 @@
       </div>
     </section>
 
-    <!-- AI -->
-    <section class="panel" id="ai">
+    <!-- 关于 -->
+    <section class="panel about" id="about">
       <div class="card">
-        <h4 style="margin-top:0">AI 引擎设置</h4>
+        <h4 style="margin-top:0">AI 引擎设置（DeepSeek）</h4>
         <p style="font-size:12px;color:var(--sub);line-height:1.6;margin:0 0 10px">
-          粘贴任意 OpenAI 兼容服务商的 Key，即切换为<b style="color:var(--txt)">大模型生成</b>（质量与定制化大幅提升）。
-          未配置时自动使用<b style="color:var(--txt)">规则引擎</b>（离线、零成本）。
+          粘贴你的 DeepSeek Key（<b style="color:var(--txt)">platform.deepseek.com</b> 免费获取），即切换为<b style="color:var(--txt)">大模型生成</b>，质量与定制化大幅提升。
+          未配置时自动使用<b style="color:var(--txt)">规则引擎</b>（离线、零成本，但偏模板化）。
         </p>
         <label>服务商</label>
         <select id="aiProvider">
@@ -136,22 +143,18 @@
         <button class="btn ghost" id="aiClear" style="margin-top:8px">清除 Key（退回规则引擎）</button>
         <div class="perk" id="aiStatus" style="margin-top:10px"></div>
       </div>
-    </section>
-
-    <!-- 关于 -->
-    <section class="panel about" id="about">
       <div class="card">
         <h4 style="margin-top:0">关于闪写 Spark</h4>
         <p>闪写 Spark 是一款面向中小创作者的 <b>中文创作灵感助手</b>。输入一个主题，几秒钟产出可直接用的标题、提纲、正文与金句，覆盖公众号、小红书、短视频三大场景。</p>
-        <p>MVP 阶段采用<b>规则引擎</b>生成（无需联网、零成本），配置 Key 后接入<b>大模型</b>，质量与定制化大幅提升。</p>
+        <p>配置 DeepSeek Key 后接入<b>大模型</b>，质量与定制化大幅提升；未配置时走<b>规则引擎</b>。</p>
       </div>
       <div class="card">
         <h4 style="margin-top:0">隐私政策（摘要）</h4>
-        <p>本应用<b>不收集</b>你的真实身份信息。创作输入仅在本地/你配置的服务商处生成。订阅状态仅保存在本机。完整隐私政策：<a href="privacy.html" style="color:#6c8cff;font-weight:600">点此查看 ›</a></p>
+        <p>本应用<b>不收集</b>你的真实身份信息。创作输入仅在本地 / 你配置的服务商处生成。订阅状态仅保存在本机。完整隐私政策：<a href="privacy.html" style="color:#6c8cff;font-weight:600">点此查看 ›</a></p>
       </div>
       <div class="card">
         <h4 style="margin-top:0">联系</h4>
-        <p>商务合作 / 反馈：spark@coldtank.example<br>版本 v0.3</p>
+        <p>商务合作 / 反馈：spark@coldtank.example<br>版本 v0.4</p>
       </div>
     </section>
   </main>
@@ -171,6 +174,7 @@
 <script src="iap.js"></script>
 <script src="xhs_cards.js"></script>
 <script src="wechat_cover.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

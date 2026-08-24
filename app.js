@@ -151,6 +151,43 @@ function renderWechatCover(r) {
   }
 }
 
+// ---- 大模型 HTML 视觉渲染（DeepSeek 出 HTML，非位图） ----
+function renderWechatCoverHTML(r) {
+  const card = $('#wcCard');
+  card.style.display = 'block';
+  $('#wcCover').innerHTML = '<div class="html-box">' + (r.coverHtml || '') + '</div>';
+}
+function renderXhsCardsHTML(r) {
+  const card = $('#xhsCard'), grid = $('#xhsGrid');
+  card.style.display = 'block';
+  const arr = (r.cardsHtml || []).slice(0, 4);
+  if (!arr.length) { renderXhsCards(r); return; }
+  grid.innerHTML = arr.map((h, i) =>
+    '<div class="xhs-item"><div class="html-box" id="xhsHtml' + i + '">' + h + '</div>' +
+    '<button class="btn ghost xs" onclick="saveAsImage(document.getElementById(\'xhsHtml' + i + '\'))">保存第' + (i + 1) + '张</button></div>'
+  ).join('');
+}
+function renderVideoThumbHTML(r) {
+  const card = $('#wcCard'); // 复用封面卡片位置展示视频缩略
+  card.style.display = 'block';
+  $('#wcCover').innerHTML = '<div class="html-box">' + (r.thumbHtml || '') + '</div>';
+  $('#wcSave').textContent = '保存封面为图片';
+}
+
+// 把 HTML 视觉节点转成图片（html2canvas），供长按保存到相册
+function saveAsImage(el) {
+  if (!el) return;
+  if (!window.html2canvas) { toast('未加载截图库，请直接长按截图保存'); return; }
+  toast('正在生成图片…');
+  window.html2canvas(el, { backgroundColor: null, scale: 2 }).then(canvas => {
+    const url = canvas.toDataURL('image/png');
+    $('#viewerImg').src = url;
+    $('#viewer').classList.add('on');
+    toast('已生成图片，长按可保存 ✓');
+  }).catch(e => toast('生成失败：' + e.message));
+}
+$('#wcSave').onclick = () => saveAsImage($('#wcCover').firstElementChild);
+
 // 全屏预览（长按/点击查看大图，iOS 上长按图片可保存到相册）
 function showViewer(item) {
   const img = item.querySelector('img');
@@ -196,9 +233,17 @@ async function generate() {
         : Generator.generate(plat, style, topic);
       render(result, 'rule');
     }
-    // 平台专属：小红书 4 图 / 公众号封面
-    if (plat === 'xhs') renderXhsCards(result);
-    if (plat === 'wechat') renderWechatCover(result);
+    // 平台专属：小红书 4 图 / 公众号封面 / 视频封面
+    // 大模型返回 HTML 视觉时优先用 HTML；否则回退规则引擎的 Canvas 绘制
+    if (plat === 'xhs') {
+      if (result.cardsHtml && result.cardsHtml.length) renderXhsCardsHTML(result);
+      else renderXhsCards(result);
+    }
+    if (plat === 'wechat') {
+      if (result.coverHtml) renderWechatCoverHTML(result);
+      else renderWechatCover(result);
+    }
+    if (plat === 'video' && result.thumbHtml) renderVideoThumbHTML(result);
   } catch (e) {
     $('#out').innerHTML = '<div class="empty">生成失败：' + e.message + '<br>建议检查网络或清除 AI Key 用规则引擎重试</div>';
     toast('生成失败：' + e.message);
@@ -265,6 +310,17 @@ function applyVIP() {
 applyVIP();
 
 // ---- AI settings ----
+function refreshAIHint() {
+  const el = $('#aiHint');
+  if (!el) return;
+  if (LLM.enabled()) {
+    el.className = 'aiHint ok';
+    el.innerHTML = '● 已接入大模型（' + (LLM.PROVIDERS[LLM.cfg().provider]?.name || '') + '），本次生成走 AI';
+  } else {
+    el.className = 'aiHint warn';
+    el.innerHTML = '⚠️ 未配置 DeepSeek Key，当前为<b>规则引擎</b>（质量较差）。去「关于」页粘贴你的 DeepSeek Key 启用大模型。';
+  }
+}
 function loadAI() {
   const c = LLM.cfg();
   $('#aiProvider').value = c.provider || 'deepseek';
@@ -274,6 +330,7 @@ function loadAI() {
   $('#aiStatus').innerHTML = LLM.enabled()
     ? '<b style="color:var(--ok)">● 已启用大模型</b>（' + (LLM.PROVIDERS[c.provider]?.name || '') + '）'
     : '<span style="color:var(--sub)">○ 当前为规则引擎（未配置 Key）</span>';
+  refreshAIHint();
 }
 loadAI();
 $('#aiSave').onclick = () => {
