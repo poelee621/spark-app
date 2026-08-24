@@ -187,8 +187,8 @@ const Generator = {
     const sections = S.sec.map(sec => {
       const pool = sec.p.slice();
       const a = pick(pool);
-      pool.splice(pool.indexOf(a), 1);
-      const b = pick(pool);
+      if (pool.length > 1) pool.splice(pool.indexOf(a), 1);
+      const b = pool.length ? pick(pool) : [];
       const para = a.concat(b).map(s => s.replace(/\$\{t\}/g, t)).join('');
       return { h: sec.h(t), p: para };
     });

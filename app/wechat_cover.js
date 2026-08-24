@@ -74,13 +74,22 @@ const WechatCover = {
     const now = new Date();
     ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = '400 20px ' + this.FONT;
     ctx.fillText(now.getFullYear() + '年' + (now.getMonth() + 1) + '月' + now.getDate() + '日', 60, this.H - 46);
-    // 底部右：渐变圆点 Logo
+    // 底部右：渐变圆角 Logo + 闪电符号
     const lg = ctx.createLinearGradient(0, 0, 44, 44);
     lg.addColorStop(0, this.BLUE); lg.addColorStop(1, this.PURPLE);
     ctx.fillStyle = lg;
     this._rrect(ctx, this.W - 92, this.H - 62, 44, 44, 12); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.font = '800 22px ' + this.FONT; ctx.textAlign = 'center';
-    ctx.fillText('S', this.W - 70, this.H - 52);
+    // 绘制小闪电
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.moveTo(this.W - 72, this.H - 49);
+    ctx.lineTo(this.W - 66, this.H - 41);
+    ctx.lineTo(this.W - 70, this.H - 41);
+    ctx.lineTo(this.W - 66, this.H - 33);
+    ctx.lineTo(this.W - 76, this.H - 43);
+    ctx.lineTo(this.W - 72, this.H - 43);
+    ctx.closePath();
+    ctx.fill();
 
     // JPEG 输出（无透明需求，编码更快）
     return c.toDataURL('image/jpeg', 0.92);

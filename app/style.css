@@ -103,6 +103,8 @@ input:focus,textarea:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0
 .xhs-loading .spin{display:inline-block;width:16px;height:16px;border:2px solid var(--line);
   border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-3px;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--line);
+  border-top-color:var(--acc);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-3px;margin-right:6px}
 
 /* ===== 图片全屏预览 ===== */
 .viewer{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;
