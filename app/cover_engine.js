@@ -93,12 +93,10 @@
     return d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
   }
 
-  // 公共暗底包装：渐变 + 光晕 + 主题水印 + 装饰 SVG
+  // 公共暗底包装：渐变 + 光晕 + 主题水印 + 装饰 SVG（无品牌条/无 chip，直接突出内容）
   function darkWrap(t, inner, opts) {
     opts = opts || {};
-    var brand = opts.brand || '✨ 闪写 Spark';
     var deco = opts.deco || '';
-    var chip = opts.chip || t.label;
     return '' +
       '<section style="position:relative;width:100%;height:100%;overflow:hidden;' +
       'background:linear-gradient(135deg,' + t.g[0] + ' 0%,' + t.g[1] + ' 100%);' +
@@ -113,23 +111,14 @@
       '<div style="position:absolute;right:0;bottom:0;width:62%;height:62%;opacity:.9;pointer-events:none;">' + t.motif + '</div>' +
       // 主题水印
       '<div style="position:absolute;top:6%;right:5%;font-size:84px;line-height:1;opacity:.12;filter:none;">' + t.icon + '</div>' +
-      // 顶部品牌条 + 主题 chip
-      '<div style="position:relative;display:flex;align-items:center;justify-content:space-between;padding:18px 20px 0;">' +
-      '<span style="font-size:13px;font-weight:800;color:' + t.ink + ';letter-spacing:.5px;opacity:.95;">' + esc(brand) + '</span>' +
-      '<span style="font-size:11px;font-weight:700;color:' + t.g[0] + ';background:' + t.accent + ';' +
-      'padding:3px 10px;border-radius:20px;">' + esc(chip) + '</span>' +
-      '</div>' +
-      // 主体由调用方注入
-      '<div style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 22px;">' + inner + '</div>' +
+      // 主体由调用方注入（内容区整体垂直居中，突出核心）
+      '<div style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;padding:22px;">' + inner + '</div>' +
       deco +
       '</section>';
   }
 
-  // 亮底卡片包装（痛点/干货），主题点缀色，编辑感
-  function lightWrap(t, inner, opts) {
-    opts = opts || {};
-    var brand = opts.brand || '✨ 闪写 Spark';
-    var head = opts.head || '';
+  // 亮底卡片包装（痛点/干货），主题点缀色，无头部提示词，直接段落
+  function lightWrap(t, inner) {
     return '' +
       '<section style="position:relative;width:100%;height:100%;overflow:hidden;' +
       'background:linear-gradient(160deg,#ffffff 0%,' + t.tint + ' 100%);' +
@@ -137,12 +126,7 @@
       'box-sizing:border-box;display:flex;flex-direction:column;">' +
       // 左上角点缀块
       '<div style="position:absolute;top:0;left:0;width:6px;height:100%;background:' + t.accent + ';"></div>' +
-      // 顶部品牌 + 小标题
-      '<div style="padding:16px 18px 0 22px;display:flex;align-items:center;justify-content:space-between;">' +
-      '<span style="font-size:11px;font-weight:800;color:' + t.accent + ';letter-spacing:.5px;">' + esc(head) + '</span>' +
-      '<span style="font-size:10px;font-weight:700;color:#9aa1b8;">' + esc(brand) + '</span>' +
-      '</div>' +
-      '<div style="position:relative;flex:1;padding:6px 20px 16px 22px;display:flex;flex-direction:column;justify-content:center;">' + inner + '</div>' +
+      '<div style="position:relative;flex:1;padding:24px 20px 20px 26px;display:flex;flex-direction:column;justify-content:center;">' + inner + '</div>' +
       '</section>';
   }
 
@@ -161,36 +145,35 @@
   }
 
   // ===== 小红书 4 张 3:4 卡片 =====
-  // idx: 0 封面 / 1 痛点 / 2 干货 / 3 金句
+  // idx: 0 封面 / 1 痛点 / 2 干货 / 3 金句 —— 无品牌/无logo/无分类提示词，直接突出内容
   function xhsCard(o, idx) {
     var t = themeOf(o.theme);
     if (idx === 0) {
+      // 封面：只有大标题 + 引导按钮
       var inner0 =
-        '<div style="font-size:12px;font-weight:800;color:' + t.accent + ';letter-spacing:1px;margin-bottom:12px;">' + esc(t.label + ' · 干货笔记') + '</div>' +
-        '<div style="font-size:23px;font-weight:900;line-height:1.3;color:' + t.ink + ';text-shadow:0 2px 10px rgba(0,0,0,.25);">' + esc(o.title) + '</div>' +
-        '<div style="margin-top:14px;display:inline-block;font-size:11px;font-weight:700;color:' + t.g[0] + ';background:' + t.accent + ';padding:4px 11px;border-radius:20px;">点击查看全文 ›</div>';
-      return darkWrap(t, inner0, { chip: '📕 小红书' });
+        '<div style="font-size:24px;font-weight:900;line-height:1.32;color:' + t.ink + ';text-shadow:0 2px 10px rgba(0,0,0,.25);">' + esc(o.title) + '</div>' +
+        '<div style="margin-top:16px;display:inline-block;font-size:12px;font-weight:700;color:' + t.g[0] + ';background:' + t.accent + ';padding:5px 13px;border-radius:22px;">点击查看全文 ›</div>';
+      return darkWrap(t, inner0);
     }
     if (idx === 3) {
+      // 金句：低调引号 + 金句文字
       var inner3 =
-        '<div style="font-size:12px;font-weight:800;color:' + t.accent + ';letter-spacing:1px;margin-bottom:10px;">✍️ 一句话封神</div>' +
-        '<div style="font-size:19px;font-weight:800;line-height:1.42;color:' + t.ink + ';text-shadow:0 2px 10px rgba(0,0,0,.25);">' + esc(o.golden) + '</div>';
-      return darkWrap(t, inner3, { chip: '金句' });
+        '<div style="font-size:56px;line-height:.8;color:' + t.accent + ';opacity:.4;margin-bottom:8px;font-family:Georgia,serif;">“</div>' +
+        '<div style="font-size:20px;font-weight:800;line-height:1.45;color:' + t.ink + ';text-shadow:0 2px 10px rgba(0,0,0,.25);">' + esc(o.golden) + '</div>';
+      return darkWrap(t, inner3);
     }
-    // 亮底：痛点 / 干货
+    // 亮底：痛点 / 干货 —— 无编号、文字占满全宽，左侧主题色竖条分段
     var isPain = idx === 1;
-    var head = isPain ? '💡 3 个痛点' : '📋 4 条干货';
     var items = isPain ? (o.painPoints || []) : (o.tips || []);
     var rows = '';
     for (var i = 0; i < items.length && i < (isPain ? 3 : 4); i++) {
       rows +=
-        '<div style="display:flex;align-items:flex-start;margin-bottom:10px;">' +
-        '<span style="flex:none;width:21px;height:21px;border-radius:50%;background:' + t.accent + ';color:' + t.g[0] + ';' +
-        'font-size:12px;font-weight:900;text-align:center;line-height:21px;margin-right:9px;">' + (i + 1) + '</span>' +
-        '<span style="flex:1;font-size:13px;line-height:1.5;color:#1b2038;">' + esc(items[i]) + '</span>' +
+        '<div style="display:flex;align-items:stretch;margin-bottom:14px;">' +
+        '<span style="flex:none;width:3px;background:' + t.accent + ';border-radius:3px;margin-right:12px;"></span>' +
+        '<span style="flex:1;font-size:14px;line-height:1.62;color:#1b2038;">' + esc(items[i]) + '</span>' +
         '</div>';
     }
-    return lightWrap(t, rows, { head: head });
+    return lightWrap(t, rows);
   }
 
   // ===== 短视频 9:16 封面 =====
