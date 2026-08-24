@@ -25,6 +25,18 @@ const LLM = {
       practical: '干货实操、可直接照做、有步骤感',
       suspense: '悬念反转、勾起好奇心'
     }[style] || '自然流畅';
+    // 公众号：要求完整文章（带小节标题）；其他平台：轻量内容包
+    if (plat === 'wechat') {
+      return `你是一名资深中文新媒体编辑。请围绕主题「${topic}」，为${pname}写一篇${sname}风格的完整文章（约1200字）。
+严格只返回一个 JSON 对象，不要任何解释或 markdown 代码块：
+{
+  "titles": ["3个吸睛标题"],
+  "intro": "引言，2-3句，有钩子",
+  "sections": [{"h": "小节小标题", "p": "小节正文，150-250字"}, {"h": "小节小标题", "p": "小节正文，150-250字"}, {"h": "小节小标题", "p": "小节正文，150-250字"}],
+  "outro": "结尾，2-3句",
+  "golden": "一句可做封面的金句"
+}`;
+    }
     return `你是一名资深中文新媒体编辑。请围绕主题「${topic}」，为${pname}创作一篇${sname}风格的内容包。
 严格只返回一个 JSON 对象，不要任何解释或 markdown 代码块：
 {
@@ -53,7 +65,19 @@ const LLM = {
     const data = await res.json();
     const text = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
     const obj = JSON.parse(text);
-    if (!obj.titles || !obj.body) throw new Error('返回格式异常');
-    return { topic, titles: obj.titles, outline: obj.outline || [], body: obj.body, golden: obj.golden || '' };
+    if (!obj.titles) throw new Error('返回格式异常');
+    // 公众号完整文章结构
+    if (obj.sections) {
+      let body = (obj.intro || '') + '\n\n';
+      obj.sections.forEach(s => { body += '## ' + s.h + '\n\n' + s.p + '\n\n'; });
+      body += obj.outro || '';
+      return {
+        topic, titles: obj.titles,
+        sections: obj.sections,
+        intro: obj.intro || '', outro: obj.outro || '',
+        body: body.trim(), golden: obj.golden || ''
+      };
+    }
+    return { topic, titles: obj.titles, outline: obj.outline || [], body: obj.body || '', golden: obj.golden || '' };
   }
 };

@@ -57,6 +57,18 @@
         </div>
         <div class="xhs-grid" id="xhsGrid"></div>
       </div>
+
+      <!-- 公众号封面（wechat 平台生成后显示） -->
+      <div class="card wc-card" id="wcCard" style="display:none">
+        <div class="xhs-head">
+          <span class="xhs-tag wc-tag">📢 公众号封面</span>
+          <span class="xhs-tip">长按图片可保存 · 900×383 头条尺寸</span>
+        </div>
+        <div class="wc-cover" id="wcCover" onclick="showViewer(this)">
+          <img id="wcImg" alt="公众号封面" />
+          <span class="wc-badge">封面</span>
+        </div>
+      </div>
     </section>
 
     <!-- 会员 -->
@@ -151,6 +163,7 @@
 <script src="llm.js"></script>
 <script src="iap.js"></script>
 <script src="xhs_cards.js"></script>
+<script src="wechat_cover.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

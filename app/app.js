@@ -47,12 +47,46 @@ function render(r, source) {
     h += '<div class="titleItem"><span>' + x + '</span><div class="copy" onclick="copyTxt(this)">复制</div></div>';
   });
   h += '</div>';
-  h += '<div class="sec"><h4><span class="dot"></span>内容提纲</h4><div class="bodyText">';
-  (r.outline || []).forEach((s, i) => { h += (i + 1) + '. ' + s + '\n'; });
-  h += '</div></div>';
-  h += '<div class="sec"><h4><span class="dot"></span>正文</h4><div class="bodyText">' + (r.body || '') + '</div></div>';
-  if (r.golden) h += '<div class="sec"><h4><span class="dot"></span>金句（可直接做封面）</h4><div class="golden">' + r.golden + '</div></div>';
+  // 公众号：完整文章（引言 + 小节 + 结尾）
+  if (r.sections) {
+    h += '<div class="sec"><h4><span class="dot"></span>完整文章（可直接复制发布）<span class="copy" onclick="copyArticle(this)">复制全文</span></h4>';
+    if (r.intro) h += '<div class="bodyText">' + r.intro + '</div><div style="height:10px"></div>';
+    r.sections.forEach(s => {
+      h += '<div class="sec-sub">' + s.h + '</div><div class="bodyText">' + s.p + '</div><div style="height:10px"></div>';
+    });
+    if (r.outro) h += '<div class="bodyText">' + r.outro + '</div>';
+    if (r.golden) h += '<div class="golden" style="margin-top:10px">' + r.golden + '</div>';
+    h += '</div>';
+  } else {
+    h += '<div class="sec"><h4><span class="dot"></span>内容提纲</h4><div class="bodyText">';
+    (r.outline || []).forEach((s, i) => { h += (i + 1) + '. ' + s + '\n'; });
+    h += '</div></div>';
+    h += '<div class="sec"><h4><span class="dot"></span>正文</h4><div class="bodyText">' + (r.body || '') + '</div></div>';
+    if (r.golden) h += '<div class="sec"><h4><span class="dot"></span>金句（可直接做封面）</h4><div class="golden">' + r.golden + '</div></div>';
+  }
   $('#out').innerHTML = h;
+}
+// 复制公众号全文（Markdown 风格）
+function copyArticle(el) {
+  const secs = document.querySelectorAll('#out .sec-sub');
+  const paras = document.querySelectorAll('#out .sec .bodyText');
+  let md = '';
+  if (secs.length && paras.length) {
+    const bodyParts = document.querySelectorAll('#out .sec .bodyText');
+    let idx = 0;
+    // 引言
+    if (paras.length >= secs.length + 2) md += paras[0].textContent + '\n\n';
+    let pi = paras.length >= secs.length + 2 ? 1 : 0;
+    secs.forEach((s, i) => {
+      md += '## ' + s.textContent + '\n\n' + (paras[pi + i] ? paras[pi + i].textContent : '') + '\n\n';
+    });
+    pi += secs.length;
+    if (pi < paras.length) md += paras[pi].textContent + '\n\n';
+  } else {
+    md = document.querySelector('#out') ? document.querySelector('#out').innerText : '';
+  }
+  navigator.clipboard && navigator.clipboard.writeText(md);
+  toast('全文已复制（Markdown 格式）✓');
 }
 
 // ---- 小红书图文：生成 4 张 3:4 卡片并展示 ----
@@ -73,6 +107,22 @@ function renderXhsCards(r) {
     }
   }, 30);
 }
+
+// ---- 公众号封面：生成 900×383 头条封面 ----
+function renderWechatCover(r) {
+  const card = $('#wcCard');
+  card.style.display = 'block';
+  setTimeout(() => {
+    try {
+      const url = WechatCover.generate(r);
+      $('#wcImg').src = url;
+    } catch (e) {
+      card.style.display = 'none';
+      toast('封面生成失败：' + e.message);
+    }
+  }, 30);
+}
+
 // 全屏预览（长按/点击查看大图，iOS 上长按图片可保存到相册）
 function showViewer(item) {
   const img = item.querySelector('img');
@@ -89,6 +139,7 @@ async function generate() {
   const topic = $('#topic').value;
   $('#out').innerHTML = '<div class="empty">生成中…</div>';
   $('#xhsCard').style.display = 'none';
+  $('#wcCard').style.display = 'none';
   let result = null;
   if (LLM.enabled()) {
     try {
@@ -100,11 +151,15 @@ async function generate() {
     }
   }
   if (!result) {
-    result = Generator.generate(plat, style, topic);
+    // 公众号 → 完整文章；其他平台 → 内容包
+    result = plat === 'wechat'
+      ? Generator.generateArticle(style, topic)
+      : Generator.generate(plat, style, topic);
     render(result, 'rule');
   }
-  // 小红书平台额外生成 4 张图文卡片
+  // 平台专属：小红书 4 图 / 公众号封面
   if (plat === 'xhs') renderXhsCards(result);
+  if (plat === 'wechat') renderWechatCover(result);
 }
 $('#genBtn').onclick = generate;
 

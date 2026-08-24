@@ -82,6 +82,9 @@ input:focus,textarea:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0
 .titleItem span{flex:1}
 .copy{font-size:11px;color:var(--acc);border:1px solid var(--acc);border-radius:9px;padding:5px 10px;cursor:pointer;white-space:nowrap;font-weight:600}
 .bodyText{font-size:13.5px;line-height:1.75;color:#dfe4ff;white-space:pre-wrap}
+.sec-sub{font-size:15px;font-weight:800;color:var(--txt);margin:6px 0 8px;
+  padding-left:10px;border-left:3px solid var(--acc)}
+.out .sec .copy{margin-left:auto}
 .golden{font-style:italic;color:var(--warn);background:rgba(255,207,92,.08);
   border-left:3px solid var(--warn);padding:11px 14px;border-radius:0 12px 12px 0;font-size:14px;line-height:1.65}
 .empty{color:var(--sub);font-size:13px;text-align:center;padding:30px 10px}
@@ -108,6 +111,15 @@ input:focus,textarea:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0
 .viewer.on{display:flex}
 .viewer img{max-width:88%;max-height:82%;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
 .viewer-tip{color:#fff8;font-size:12px;margin-top:14px;text-align:center}
+
+/* ===== 公众号封面 ===== */
+.wc-card{border-color:rgba(108,140,255,.4);background:linear-gradient(180deg,rgba(108,140,255,.08),rgba(21,26,48,.8) 60%)}
+.wc-tag{color:var(--acc)}
+.wc-cover{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);
+  cursor:pointer;aspect-ratio:900/383;background:var(--card2)}
+.wc-cover img{width:100%;height:100%;object-fit:cover;display:block}
+.wc-badge{position:absolute;top:8px;left:8px;font-size:10px;font-weight:800;color:#fff;
+  background:rgba(108,140,255,.85);padding:3px 9px;border-radius:10px}
 
 /* ===== 会员 ===== */
 .price{display:flex;gap:10px}
