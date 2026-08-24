@@ -51,33 +51,43 @@ const LLM = {
     const p = this.PROVIDERS[c.provider] || this.PROVIDERS.deepseek;
     const base = c.baseUrl || p.base;
     const model = c.model || p.model;
-    const res = await fetch(base + '/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + c.apiKey },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content: this.buildPrompt(plat, style, topic) }],
-        temperature: 0.9,
-        response_format: { type: 'json_object' }
-      })
-    });
-    if (!res.ok) throw new Error('API ' + res.status);
-    const data = await res.json();
-    const text = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
-    const obj = JSON.parse(text);
-    if (!obj.titles) throw new Error('返回格式异常');
-    // 公众号完整文章结构
-    if (obj.sections) {
-      let body = (obj.intro || '') + '\n\n';
-      obj.sections.forEach(s => { body += '## ' + s.h + '\n\n' + s.p + '\n\n'; });
-      body += obj.outro || '';
-      return {
-        topic, titles: obj.titles,
-        sections: obj.sections,
-        intro: obj.intro || '', outro: obj.outro || '',
-        body: body.trim(), golden: obj.golden || ''
-      };
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000); // 12 秒超时，iOS 移动网络必须设上限
+    try {
+      const res = await fetch(base + '/chat/completions', {
+        method: 'POST',
+        signal: ctrl.signal,
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + c.apiKey },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: this.buildPrompt(plat, style, topic) }],
+          temperature: 0.9,
+          response_format: { type: 'json_object' }
+        })
+      });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error('API ' + res.status);
+      const data = await res.json();
+      const text = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
+      const obj = JSON.parse(text);
+      if (!obj.titles) throw new Error('返回格式异常');
+      // 公众号完整文章结构
+      if (obj.sections) {
+        let body = (obj.intro || '') + '\n\n';
+        obj.sections.forEach(s => { body += '## ' + s.h + '\n\n' + s.p + '\n\n'; });
+        body += obj.outro || '';
+        return {
+          topic, titles: obj.titles,
+          sections: obj.sections,
+          intro: obj.intro || '', outro: obj.outro || '',
+          body: body.trim(), golden: obj.golden || ''
+        };
+      }
+      return { topic, titles: obj.titles, outline: obj.outline || [], body: obj.body || '', golden: obj.golden || '' };
+    } catch (e) {
+      clearTimeout(timer);
+      if (e.name === 'AbortError') throw new Error('请求超时，请检查网络或关闭 AI 用规则引擎');
+      throw e;
     }
-    return { topic, titles: obj.titles, outline: obj.outline || [], body: obj.body || '', golden: obj.golden || '' };
   }
 };

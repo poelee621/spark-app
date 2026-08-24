@@ -141,29 +141,39 @@ async function generate() {
     used++; setUsed(used); refreshCounter();
   }
   const topic = $('#topic').value;
-  $('#out').innerHTML = '<div class="empty">生成中…</div>';
+  $('#out').innerHTML = '<div class="empty"><span class="spin"></span>正在生成内容…</div>';
   $('#xhsCard').style.display = 'none';
   $('#wcCard').style.display = 'none';
   let result = null;
-  if (LLM.enabled()) {
-    try {
-      result = await LLM.call(plat, style, topic);
-      render(result, 'ai');
-    } catch (e) {
-      toast('AI 调用失败，已降级规则引擎：' + e.message);
-      result = null;
+  try {
+    if (LLM.enabled()) {
+      $('#out').innerHTML = '<div class="empty"><span class="spin"></span>正在调用大模型…（约 3~8 秒）</div>';
+      try {
+        result = await LLM.call(plat, style, topic);
+        render(result, 'ai');
+      } catch (e) {
+        toast('AI 调用失败，已降级规则引擎：' + e.message);
+        result = null;
+      }
     }
+    if (!result) {
+      $('#out').innerHTML = '<div class="empty"><span class="spin"></span>正在用规则引擎生成…</div>';
+      // 公众号 → 完整文章；其他平台 → 内容包
+      result = plat === 'wechat'
+        ? Generator.generateArticle(style, topic)
+        : Generator.generate(plat, style, topic);
+      render(result, 'rule');
+    }
+    // 平台专属：小红书 4 图 / 公众号封面
+    if (plat === 'xhs') renderXhsCards(result);
+    if (plat === 'wechat') {
+      $('#out').insertAdjacentHTML('beforeend', '<div class="empty" style="margin-top:10px"><span class="spin"></span>正在绘制公众号封面…</div>');
+      renderWechatCover(result);
+    }
+  } catch (e) {
+    $('#out').innerHTML = '<div class="empty">生成失败：' + e.message + '<br>建议检查网络或清除 AI Key 用规则引擎重试</div>';
+    toast('生成失败：' + e.message);
   }
-  if (!result) {
-    // 公众号 → 完整文章；其他平台 → 内容包
-    result = plat === 'wechat'
-      ? Generator.generateArticle(style, topic)
-      : Generator.generate(plat, style, topic);
-    render(result, 'rule');
-  }
-  // 平台专属：小红书 4 图 / 公众号封面
-  if (plat === 'xhs') renderXhsCards(result);
-  if (plat === 'wechat') renderWechatCover(result);
 }
 $('#genBtn').onclick = generate;
 
