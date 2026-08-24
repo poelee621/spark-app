@@ -112,7 +112,7 @@
       // 主题水印
       '<div style="position:absolute;top:6%;right:5%;font-size:84px;line-height:1;opacity:.12;filter:none;">' + t.icon + '</div>' +
       // 主体由调用方注入（内容区整体垂直居中，突出核心）
-      '<div style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;padding:22px;">' + inner + '</div>' +
+      '<div style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;padding:18px;">' + inner + '</div>' +
       deco +
       '</section>';
   }
@@ -126,7 +126,7 @@
       'box-sizing:border-box;display:flex;flex-direction:column;">' +
       // 左上角点缀块
       '<div style="position:absolute;top:0;left:0;width:6px;height:100%;background:' + t.accent + ';"></div>' +
-      '<div style="position:relative;flex:1;padding:24px 20px 20px 26px;display:flex;flex-direction:column;justify-content:center;">' + inner + '</div>' +
+      '<div style="position:relative;flex:1;padding:18px 16px 16px 24px;display:flex;flex-direction:column;justify-content:center;">' + inner + '</div>' +
       '</section>';
   }
 
@@ -145,32 +145,33 @@
   }
 
   // ===== 小红书 4 张 3:4 卡片 =====
-  // idx: 0 封面 / 1 痛点 / 2 干货 / 3 金句 —— 无品牌/无logo/无分类提示词，直接突出内容
+  // idx: 0 封面 / 1 痛点 / 2 干货 / 3 金句 —— 无品牌/无logo/无分类提示词/无编号/无竖条，纯内容
+  // 3:4 竖卡空间有限：痛点/干货统一最多 3 条，字号按内容长度分级，保证文字完整显示不裁切
   function xhsCard(o, idx) {
     var t = themeOf(o.theme);
     if (idx === 0) {
       // 封面：只有大标题 + 引导按钮
+      var fs0 = (o.title || '').length > 16 ? 20 : 22;
       var inner0 =
-        '<div style="font-size:24px;font-weight:900;line-height:1.32;color:' + t.ink + ';text-shadow:0 2px 10px rgba(0,0,0,.25);">' + esc(o.title) + '</div>' +
-        '<div style="margin-top:16px;display:inline-block;font-size:12px;font-weight:700;color:' + t.g[0] + ';background:' + t.accent + ';padding:5px 13px;border-radius:22px;">点击查看全文 ›</div>';
+        '<div style="font-size:' + fs0 + 'px;font-weight:900;line-height:1.34;color:' + t.ink + ';text-shadow:0 2px 10px rgba(0,0,0,.25);">' + esc(o.title) + '</div>' +
+        '<div style="margin-top:14px;display:inline-block;font-size:12px;font-weight:700;color:' + t.g[0] + ';background:' + t.accent + ';padding:5px 13px;border-radius:22px;">点击查看全文 ›</div>';
       return darkWrap(t, inner0);
     }
     if (idx === 3) {
       // 金句：低调引号 + 金句文字
+      var fs3 = (o.golden || '').length > 24 ? 16 : 18;
       var inner3 =
-        '<div style="font-size:56px;line-height:.8;color:' + t.accent + ';opacity:.4;margin-bottom:8px;font-family:Georgia,serif;">“</div>' +
-        '<div style="font-size:20px;font-weight:800;line-height:1.45;color:' + t.ink + ';text-shadow:0 2px 10px rgba(0,0,0,.25);">' + esc(o.golden) + '</div>';
+        '<div style="font-size:48px;line-height:.8;color:' + t.accent + ';opacity:.4;margin-bottom:8px;font-family:Georgia,serif;">“</div>' +
+        '<div style="font-size:' + fs3 + 'px;font-weight:800;line-height:1.5;color:' + t.ink + ';text-shadow:0 2px 10px rgba(0,0,0,.25);">' + esc(o.golden) + '</div>';
       return darkWrap(t, inner3);
     }
-    // 亮底：痛点 / 干货 —— 无编号、文字占满全宽，左侧主题色竖条分段
-    var isPain = idx === 1;
-    var items = isPain ? (o.painPoints || []) : (o.tips || []);
+    // 亮底：痛点 / 干货 —— 纯段落、无编号无竖条、文字占满全宽，最多 3 条保证完整显示
+    var items = (idx === 1 ? (o.painPoints || []) : (o.tips || [])).slice(0, 3);
     var rows = '';
-    for (var i = 0; i < items.length && i < (isPain ? 3 : 4); i++) {
+    for (var i = 0; i < items.length; i++) {
       rows +=
-        '<div style="display:flex;align-items:stretch;margin-bottom:14px;">' +
-        '<span style="flex:none;width:3px;background:' + t.accent + ';border-radius:3px;margin-right:12px;"></span>' +
-        '<span style="flex:1;font-size:14px;line-height:1.62;color:#1b2038;">' + esc(items[i]) + '</span>' +
+        '<div style="margin-bottom:' + (i === items.length - 1 ? 0 : 13) + 'px;">' +
+        '<div style="font-size:13.5px;line-height:1.55;color:#1b2038;font-weight:500;">' + esc(items[i]) + '</div>' +
         '</div>';
     }
     return lightWrap(t, rows);
