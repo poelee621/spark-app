@@ -41,13 +41,16 @@ const LLM = {
   "golden": "一句可做封面的金句"
 }`;
     }
+    // 小红书：返回可直接发布笔记的内容，不是"如何写小红书"的教程
+    const isXhs = plat === 'xhs';
     return `你是一名资深中文新媒体编辑。请围绕主题「${topic}」，为${pname}创作一篇${sname}风格的内容包。
+${isXhs ? '这是小红书笔记：必须围绕主题写真实内容，绝不能写成"如何写小红书"的教程。' : ''}
 严格只返回一个 JSON 对象，不要任何解释或 markdown 代码块：
 {
   "titles": ["3个吸睛标题"],
-  "outline": ["提纲步骤1","步骤2","步骤3"],
-  "body": "正文，用\\n\\n分段，300-600字",
-  "golden": "一句可做封面的金句"
+  ${isXhs ? '"painPoints": ["3个围绕主题的具体痛点/共鸣点"],\n  "tips": ["4条围绕主题的具体干货/建议"],' : '"outline": ["提纲步骤1","步骤2","步骤3"],'}
+  "body": "正文，用\\n\\n分段，${isXhs ? '300-500字、口语化、带emoji' : '300-600字'}",
+  "golden": "一句围绕主题的金句"
 }`;
   },
   async call(plat, style, topic) {
@@ -85,6 +88,16 @@ const LLM = {
           sections: obj.sections,
           intro: obj.intro || '', outro: obj.outro || '',
           body: body.trim(), golden: obj.golden || ''
+        };
+      }
+      if (plat === 'xhs') {
+        return {
+          topic, titles: obj.titles,
+          painPoints: obj.painPoints || [],
+          tips: obj.tips || [],
+          body: obj.body || '',
+          golden: obj.golden || '',
+          plat: 'xhs'
         };
       }
       return { topic, titles: obj.titles, outline: obj.outline || [], body: obj.body || '', golden: obj.golden || '' };
