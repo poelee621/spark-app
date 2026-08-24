@@ -5,7 +5,7 @@
 //   3) 填入下方 REVENUECAT_API_KEY（建议由后端下发，避免硬编码）
 const IAP = {
   API_KEY: 'test_cHieRhZHRzWrOeWsJzaDRCwkpWx', // RevenueCat 测试公钥；上架前换成生产 key
-  PRODUCT_ID: 'spark_pro_yearly',    // App Store Connect / RevenueCat 中配置的商品 ID
+  PRODUCT_IDS: { monthly: 'spark_pro_monthly', yearly: 'spark_pro_yearly' }, // 月度/年度商品 ID
   ENTITLEMENT: 'pro',               // RevenueCat 中 entitlement 标识
   _ready: false,
   _plugin() {
@@ -19,9 +19,10 @@ const IAP = {
     try { await p.configure({ apiKey: this.API_KEY }); this._ready = true; return true; }
     catch (e) { console.warn('IAP init failed', e); this._ready = false; return false; }
   },
-  _pick(offerings) {
+  _pick(offerings, plan) {
+    const id = this.PRODUCT_IDS[plan] || this.PRODUCT_IDS.yearly;
     const pkgs = offerings?.current?.availablePackages || [];
-    return pkgs.find(x => x.product?.identifier === this.PRODUCT_ID) || pkgs[0] || null;
+    return pkgs.find(x => x.product?.identifier === id) || pkgs[0] || null;
   },
   async price() {
     const p = this._plugin(); if (!p || !this._ready) return '';
@@ -29,11 +30,11 @@ const IAP = {
       return pkg ? pkg.product.priceString : ''; }
     catch (e) { return ''; }
   },
-  async purchase() {
+  async purchase(plan) {
     const p = this._plugin(); if (!p || !this._ready) return false;
     try {
       const { offerings } = await p.getOfferings();
-      const pkg = this._pick(offerings);
+      const pkg = this._pick(offerings, plan);
       if (!pkg) throw new Error('无可选商品');
       const { customerInfo } = await p.purchasePackage(pkg);
       if (customerInfo?.entitlements?.active?.[this.ENTITLEMENT]) {
