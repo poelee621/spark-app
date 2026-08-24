@@ -9,9 +9,6 @@
   /* HTML 封面 / 卡片：大模型返回的内联样式片段，强制自适应容器 */
   .html-box { width: 100%; border-radius: 14px; overflow: hidden; background: #111; }
   .html-box > * { width: 100% !important; height: auto !important; display: block; }
-  .aiHint { font-size: 12px; line-height: 1.6; padding: 9px 12px; border-radius: 10px; margin: 4px 0 12px; }
-  .aiHint.warn { background: #fff6e6; color: #8a5a00; border: 1px solid #ffd591; }
-  .aiHint.ok { background: #e9f9ee; color: #1a7a3c; border: 1px solid #b7ebc6; }
   .btn.xs { font-size: 12px; padding: 7px 12px; margin-top: 6px; }
 </style>
 </head>
@@ -33,7 +30,6 @@
   <main>
     <!-- 创作 -->
     <section class="panel on" id="create">
-      <div class="aiHint ok" id="aiHint">● 正在初始化平台 AI 引擎…</div>
       <div class="card">
         <label>① 选择平台</label>
         <div class="row" id="platRow">

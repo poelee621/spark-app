@@ -310,17 +310,6 @@ function applyVIP() {
 applyVIP();
 
 // ---- AI settings ----
-function refreshAIHint() {
-  const el = $('#aiHint');
-  if (!el) return;
-  if (LLM.enabled()) {
-    el.className = 'aiHint ok';
-    el.innerHTML = '● 已接入平台大模型（默认 DeepSeek），本次生成走 AI，<b>无需填 Key</b>';
-  } else {
-    el.className = 'aiHint warn';
-    el.innerHTML = '⚠️ 平台 AI 代理未部署，当前为<b>规则引擎</b>（质量较差）。可在「关于」页粘贴你自己的 DeepSeek Key 启用大模型。';
-  }
-}
 function loadAI() {
   const c = LLM.cfg();
   $('#aiProvider').value = c.provider || 'deepseek';
@@ -334,7 +323,6 @@ function loadAI() {
   } else {
     $('#aiStatus').innerHTML = '<span style="color:var(--sub)">○ 平台代理未部署，也未填 Key，当前为规则引擎</span>';
   }
-  refreshAIHint();
 }
 loadAI();
 $('#aiSave').onclick = () => {
