@@ -183,13 +183,9 @@ const Generator = {
     const S = this.ARTICLE[style] || this.ARTICLE.practical;
     const titles = this.TITLES[style](t);
     const intro = pick(S.intro) + '\n\n';
-    // 每节拼 2 段（不重复），让文章更饱满
+    // 每节拼接全部段落，保证整篇正文 >300 字
     const sections = S.sec.map(sec => {
-      const pool = sec.p.slice();
-      const a = pick(pool);
-      if (pool.length > 1) pool.splice(pool.indexOf(a), 1);
-      const b = pool.length ? pick(pool) : [];
-      const para = a.concat(b).map(s => s.replace(/\$\{t\}/g, t)).join('');
+      const para = sec.p.map(arr => arr.join('')).map(s => s.replace(/\$\{t\}/g, t)).join('');
       return { h: sec.h(t), p: para };
     });
     const outro = pick(S.outro).replace(/\$\{t\}/g, t);
