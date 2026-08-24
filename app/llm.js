@@ -87,6 +87,7 @@ ${typeGuide}
 要求：开篇用具体场景或反常识钩子；每节有小标题；论点必须带本主题的具体事实 / 案例 / 数据 / 机制，禁止抽象口号；结尾给一句可做封面的金句。
 严格只返回一个 JSON 对象，不要任何解释或 markdown 代码块：
 {
+  "theme": "从下面 10 个英文 key 里选一个最贴合本主题的：tech(科技) / finance(财经) / emotion(情感) / food(美食) / travel(旅行) / career(职场) / knowledge(知识) / health(健康) / fashion(时尚) / life(生活)",
   "titles": ["3个来自主题具体矛盾的标题，禁止万能句式黑名单里的任何句式"],
   "intro": "引言 2~3 句，有钩子",
   "sections": [
@@ -96,9 +97,9 @@ ${typeGuide}
     {"h": "小节小标题", "p": "小节正文 200~280 字"}
   ],
   "outro": "结尾 2~3 句",
-  "golden": "一句可做封面的金句（具体、有锋芒，禁止空泛口号）",
-  "coverHtml": "一张 900×383 公众号头条封面的完整自包含 HTML 片段（含内联 style，禁止外链图片 / 字体 / CSS / JS）。要求：现代渐变背景、左上品牌条『✨ 闪写 Spark』、主标题用 titles[0]、副标题用 golden、右下角当前日期。设计感、不俗气，文字清晰可读。"
-}`;
+  "golden": "一句可做封面的金句（具体、有锋芒，禁止空泛口号）"
+}
+注意：不要返回任何 HTML 字段（如 coverHtml），封面由客户端按 theme 自动渲染。`;
     }
     if (plat === 'video') {
       return `请围绕主题「${topic}」，创作一条${sname}风格的短视频口播脚本（约 60 秒）。
@@ -106,6 +107,7 @@ ${typeGuide}
 要求：开场钩子直接点本主题的具体矛盾或反常识，禁止「大家好今天我们来聊」废话开头；干货给具体信息 / 案例 / 观点；每句都围绕主题，禁止脱离主题讲通用人生道理；禁止模板鸡汤。
 严格只返回一个 JSON 对象，不要任何解释或 markdown 代码块：
 {
+  "theme": "从下面 10 个英文 key 里选一个最贴合本主题的：tech(科技) / finance(财经) / emotion(情感) / food(美食) / travel(旅行) / career(职场) / knowledge(知识) / health(健康) / fashion(时尚) / life(生活)",
   "titles": ["3个爆款标题，口语、短、有冲击，禁止万能句式黑名单"],
   "hook": "3秒开场钩子（直击主题具体矛盾）",
   "script": [
@@ -115,9 +117,9 @@ ${typeGuide}
     {"shot": "【金句 40-50s】", "text": "一句围绕主题的总结"},
     {"shot": "【引导 50-60s】", "text": "引导点赞 / 关注 / 评论"}
   ],
-  "golden": "一句可做封面 / 字幕的金句（具体，禁止空泛）",
-  "thumbHtml": "一张 16:9 短视频封面的完整自包含 HTML 片段（内联 style，禁止外链）。现代风格，含标题与 golden，文字清晰。"
-}`;
+  "golden": "一句可做封面 / 字幕的金句（具体，禁止空泛）"
+}
+注意：不要返回任何 HTML 字段（如 thumbHtml），封面由客户端按 theme 自动渲染。`;
     }
     // 小红书
     return `请围绕主题「${topic}」，为${pname}创作一篇${sname}风格的内容包。
@@ -126,14 +128,14 @@ ${typeGuide}
 要求：标题来自主题具体矛盾；痛点带真实场景 / 后果；干货给围绕主题的具体动作或知识（知识型给框架 / 维度 / 概念，行动型给步骤）；正文有观点有细节；全部禁止万能句式与鸡汤黑名单。
 严格只返回一个 JSON 对象，不要任何解释或 markdown 代码块：
 {
+  "theme": "从下面 10 个英文 key 里选一个最贴合本主题的：tech(科技) / finance(财经) / emotion(情感) / food(美食) / travel(旅行) / career(职场) / knowledge(知识) / health(健康) / fashion(时尚) / life(生活)",
   "titles": ["3个吸睛标题，禁止万能句式黑名单"],
   "painPoints": ["3个围绕主题的具体痛点 / 共鸣点，带真实场景"],
   "tips": ["4条围绕主题的具体干货（知识型给框架 / 维度 / 概念，行动型给步骤 / 动作）"],
   "body": "正文，用\\n\\n分段，300~500字，口语化可带 emoji，必须有观点和细节",
-  "golden": "一句围绕主题的金句，禁止空泛口号",
-  "cardsHtml": ["封面大标题卡 HTML(红底白字, 用 titles[0])", "痛点卡 HTML(白底, 用 painPoints)", "干货卡 HTML(白底, 用 tips 编号)", "金句卡 HTML(红底白字, 用 golden)"]
+  "golden": "一句围绕主题的金句，禁止空泛口号"
 }
-cardsHtml 是长度为 4 的数组，每张是 3:4 竖版小红书图文卡的完整自包含 HTML（内联 style，禁止外链图片 / 字体 / CSS / JS）。每卡用 <section style="...;aspect-ratio:3/4;..."> 包裹，文字必须来自本主题，禁止套话。`;
+注意：不要返回任何 HTML 字段（如 cardsHtml），4 张图文卡由客户端按 theme 自动渲染（封面卡用 titles[0]、痛点卡用 painPoints、干货卡用 tips、金句卡用 golden）。`;
   },
 
   async call(plat, style, topic) {
@@ -197,10 +199,8 @@ cardsHtml 是长度为 4 的数组，每张是 3:4 竖版小红书图文卡的�
         out.outline = obj.outline || [];
         out.body = obj.body || '';
       }
-      // 图片（HTML 格式，由大模型生成；DeepSeek 不出图，用 HTML 呈现视觉）
-      if (obj.coverHtml) out.coverHtml = obj.coverHtml;
-      if (obj.cardsHtml) out.cardsHtml = obj.cardsHtml;
-      if (obj.thumbHtml) out.thumbHtml = obj.thumbHtml;
+      // 主题（封面由客户端 CoverEngine 按 theme 渲染，不再依赖大模型吐 HTML）
+      if (obj.theme) out.theme = obj.theme;
       return out;
     } catch (e) {
       clearTimeout(timer);

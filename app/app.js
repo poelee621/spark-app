@@ -151,23 +151,28 @@ function renderWechatCover(r) {
   }
 }
 
-// ---- 大模型 HTML 视觉渲染（DeepSeek 出 HTML，非位图） ----
+// ---- 封面渲染（按主题由 CoverEngine 生成有设计感的 HTML，再 html2canvas 转 PNG） ----
+function coverThemeOf(r) {
+  return r.theme || CoverEngine.detectTheme(r.topic || '');
+}
 function renderWechatCoverHTML(r) {
   const card = $('#wcCard');
   card.style.display = 'block';
   $('#coverTag').textContent = '📢 公众号封面';
-  $('#coverTip').textContent = '大模型生成 HTML 封面';
+  $('#coverTip').textContent = '主题配色封面（' + (CoverEngine.THEMES[coverThemeOf(r)]?.label || '通用') + '）';
   $('#wcSave').textContent = '保存封面为图片';
   $('#wcCover').classList.remove('video');
-  $('#wcCover').innerHTML = '<div class="html-box">' + (r.coverHtml || '') + '</div>';
+  const html = CoverEngine.wechat({ theme: coverThemeOf(r), title: r.titles?.[0] || '', sub: r.golden || '' });
+  $('#wcCover').innerHTML = '<div class="html-box">' + html + '</div>';
 }
 function renderXhsCardsHTML(r) {
   const card = $('#xhsCard'), grid = $('#xhsGrid');
   card.style.display = 'block';
-  const arr = (r.cardsHtml || []).slice(0, 4);
-  if (!arr.length) { renderXhsCards(r); return; }
-  grid.innerHTML = arr.map((h, i) =>
-    '<div class="xhs-item"><div class="html-box" id="xhsHtml' + i + '">' + h + '</div>' +
+  const theme = coverThemeOf(r);
+  const opts = { theme, title: r.titles?.[0] || '', painPoints: r.painPoints || [], tips: r.tips || [], golden: r.golden || '' };
+  if (!(r.titles && r.titles.length)) { renderXhsCards(r); return; }
+  grid.innerHTML = [0, 1, 2, 3].map(i =>
+    '<div class="xhs-cell"><div class="xhs-item"><div class="html-box" id="xhsHtml' + i + '">' + CoverEngine.xhsCard(opts, i) + '</div></div>' +
     '<button class="btn ghost xs" onclick="saveAsImage(document.getElementById(\'xhsHtml' + i + '\'))">保存第' + (i + 1) + '张</button></div>'
   ).join('');
 }
@@ -175,10 +180,11 @@ function renderVideoThumbHTML(r) {
   const card = $('#wcCard'); // 复用封面卡片位置展示视频缩略
   card.style.display = 'block';
   $('#coverTag').textContent = '🎬 视频封面';
-  $('#coverTip').textContent = '大模型生成 9:16 竖屏封面';
+  $('#coverTip').textContent = '主题配色 9:16 竖屏（' + (CoverEngine.THEMES[coverThemeOf(r)]?.label || '通用') + '）';
   $('#wcSave').textContent = '保存视频封面';
   $('#wcCover').classList.add('video');
-  $('#wcCover').innerHTML = '<div class="html-box">' + (r.thumbHtml || '') + '</div>';
+  const html = CoverEngine.video({ theme: coverThemeOf(r), title: r.titles?.[0] || '', sub: r.golden || '' });
+  $('#wcCover').innerHTML = '<div class="html-box">' + html + '</div>';
 }
 
 // 把 HTML 视觉节点转成图片（html2canvas），供长按保存到相册
@@ -242,16 +248,17 @@ async function generate() {
       render(result, 'rule');
     }
     // 平台专属：小红书 4 图 / 公众号封面 / 视频封面
-    // 大模型返回 HTML 视觉时优先用 HTML；否则回退规则引擎的 Canvas 绘制
+    // AI 路径（result.source==='ai' 且拿到标题）走 CoverEngine 主题封面；否则回退规则引擎 Canvas
+    var canCover = result.source === 'ai' && result.titles && result.titles.length;
     if (plat === 'xhs') {
-      if (result.cardsHtml && result.cardsHtml.length) renderXhsCardsHTML(result);
+      if (canCover) renderXhsCardsHTML(result);
       else renderXhsCards(result);
     }
     if (plat === 'wechat') {
-      if (result.coverHtml) renderWechatCoverHTML(result);
+      if (canCover) renderWechatCoverHTML(result);
       else renderWechatCover(result);
     }
-    if (plat === 'video' && result.thumbHtml) renderVideoThumbHTML(result);
+    if (plat === 'video' && canCover) renderVideoThumbHTML(result);
   } catch (e) {
     $('#out').innerHTML = '<div class="empty">生成失败：' + e.message + '<br>建议检查网络或清除 AI Key 用规则引擎重试</div>';
     toast('生成失败：' + e.message);

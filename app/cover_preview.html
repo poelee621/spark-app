@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>闪写 Spark · 封面主题引擎预览</title>
+<style>
+  body{margin:0;background:#0f1320;color:#e8ecf6;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;padding:28px}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:#9aa1b8;font-size:13px;margin-bottom:26px}
+  .sample{margin-bottom:40px}
+  .sample h2{font-size:15px;color:#8fb6ff;margin:0 0 14px;border-left:3px solid #5b76ff;padding-left:10px}
+  .row{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+  .blk{background:#161b2e;border:1px solid #283150;border-radius:14px;padding:12px}
+  .blk .cap{font-size:11px;color:#9aa1b8;margin-bottom:8px}
+  .wechat{width:430px;aspect-ratio:900/383;border-radius:12px;overflow:hidden}
+  .video{width:200px;aspect-ratio:9/16;border-radius:12px;overflow:hidden}
+  .xhs-grid{display:grid;grid-template-columns:repeat(2,120px);gap:10px}
+  .xhs-grid > div{aspect-ratio:3/4;border-radius:10px;overflow:hidden}
+  .html-box{width:100%;height:100%}
+  .html-box > *{width:100%;height:100%;display:block}
+  .tip{color:#ffd166;font-size:12px;margin-top:8px;max-width:430px;line-height:1.6}
+</style>
+</head>
+<body>
+<h1>✨ 闪写 Spark · 封面主题引擎预览</h1>
+<div class="sub">配色随主题切换（红白不再是唯一），渐变 + 光晕 + 主题水印 + 装饰图形。下方为各主题真实渲染（与 App 内一致，最终由 html2canvas 导出为 PNG）。</div>
+<div id="app"></div>
+
+<script src="cover_engine.js"></script>
+<script>
+  var samples = [
+    {
+      name: '主题：财经 · 「年轻人为什么不爱存钱」',
+      theme: 'finance',
+      title: '存钱不如花钱？这届年轻人把“安全感”重新定义了',
+      golden: '不是不焦虑钱，是终于算清了：复利跑不赢房租，体验拖不起。',
+      painPoints: ['工资刚到手就被房租和通胀吃掉一大半，存了像没存', '看完一堆理财课还是不敢买基金，怕被割', '朋友都在消费，自己存钱像在跟全世界对着干'],
+      tips: ['先留“体验金”再谈储蓄，心理账户分开才存得下', '用自动转账把存钱动作前置到发薪当天', '只做看得懂的产品，看不懂的一律当骗子']
+    },
+    {
+      name: '主题：科技 · 「AI 会不会取代程序员」',
+      theme: 'tech',
+      title: 'AI 写代码半年后，真实被替代的不是初级岗',
+      golden: '被替代的不是写代码的人，是把需求想清楚的人。',
+      painPoints: ['老板以为接个 AI 就能少招人，需求却更乱了', 'AI 生成的代码能跑，但没人敢改、改不动', '简历写“会用 Copilot”，面试被问底层原理当场卡壳'],
+      tips: ['把 AI 当实习生：会写但要你 review 架构', '练“把需求拆成机器能懂的步骤”这项稀缺能力', '深耕可观测性 / 性能 / 安全这些 AI 还做不好的部分']
+    },
+    {
+      name: '主题：旅行 · 「一个人去云南旅行」',
+      theme: 'travel',
+      title: '一个人去云南，我把“孤独”走成了奢侈品',
+      golden: '不必迁就任何人的行程，才是旅行最贵的自由。',
+      painPoints: ['想走就走，但没人帮忙拍一张像样的照', '旺季民宿临时订不到，只能天天改计划', '一个人吃火锅，服务员比我还紧张'],
+      tips: ['大理环海租电驴，日落前 2 小时最出片', '沙溪比大理安静十倍，适合真放空', '青旅公共区是 solo 旅行最好的社交场']
+    },
+    {
+      name: '主题：美食 · 「减脂期怎么吃才不饿」',
+      theme: 'food',
+      title: '减脂期还在饿肚子？你只是蛋白质没吃够',
+      golden: '饿不是意志力的考验，是餐盘里少了 30g 肉。',
+      painPoints: ['沙拉吃一周，半夜饿醒翻冰箱', '戒掉主食后整个人暴躁还掉头发', '平台期卡一个月，体重纹丝不动'],
+      tips: ['每餐先吃一掌蛋白质，饱腹感直接拉满', '把白米换成红薯 / 燕麦，血糖更稳', '允许每周一顿“自由餐”，否则必暴食反弹']
+    },
+    {
+      name: '主题：情感 · 「异地恋怎么维持」',
+      theme: 'emotion',
+      title: '异地恋熬不过的不是距离，是“看不到未来”',
+      golden: '能见面却总说忙，比隔着时区更伤人。',
+      painPoints: ['视频电话变成打卡，说完“吃了吗”就沉默', '对方城市有了新朋友，你却最后一个知道', '节日一个人过，朋友圈全是别人成双成对'],
+      tips: ['约定一个“结束异地”的具体时间点，不是空话', '共享一件小事：同步追剧 / 联机游戏', '吵架不过夜，时差经不起冷战']
+    }
+  ];
+
+  var html = '';
+  samples.forEach(function(s){
+    html += '<div class="sample"><h2>' + s.name + '</h2><div class="row">';
+    // 公众号封面
+    html += '<div class="blk"><div class="cap">公众号封面 900×383</div><div class="wechat"><div class="html-box">' +
+      CoverEngine.wechat({ theme: s.theme, title: s.title, sub: s.golden }) + '</div></div></div>';
+    // 小红书 4 卡
+    html += '<div class="blk"><div class="cap">小红书 4 张 3:4 图文卡</div><div class="xhs-grid">';
+    var opts = { theme: s.theme, title: s.title, painPoints: s.painPoints, tips: s.tips, golden: s.golden };
+    [0,1,2,3].forEach(function(i){
+      html += '<div><div class="html-box">' + CoverEngine.xhsCard(opts, i) + '</div></div>';
+    });
+    html += '</div></div>';
+    // 短视频封面
+    html += '<div class="blk"><div class="cap">短视频封面 9:16</div><div class="video"><div class="html-box">' +
+      CoverEngine.video({ theme: s.theme, title: s.title, sub: s.golden }) + '</div></div></div>';
+    html += '</div></div>';
+  });
+  document.getElementById('app').innerHTML = html;
+</script>
+</body>
+</html>
