@@ -64,16 +64,17 @@ const XhsCards = {
     const title = (r.titles && r.titles[0]) || '这个主题值得一看';
     ctx.fillStyle = '#fff'; ctx.font = '800 92px ' + this.FONT;
     const lines = this._wrap(ctx, title, this.W - 168);
-    const lh = 116, maxLines = 4;
-    let y = 320;
+    const lh = 110, maxLines = 4;
+    let y = 300;
     lines.slice(0, maxLines).forEach(l => { ctx.fillText(l, 84, y); y += lh; });
 
-    if (r.titles && r.titles[1]) {
-      ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.font = '500 40px ' + this.FONT;
-      const sub = this._wrap(ctx, r.titles[1], this.W - 168).slice(0, 2);
-      y += 20;
-      sub.forEach(l => { ctx.fillText(l, 84, y); y += 52; });
-    }
+    // 副标题用正文第一句或备用标题，避免空泛
+    const bodyFirst = (r.body || '').split(/\n|。/)[0].trim();
+    const subRaw = bodyFirst || (r.titles && r.titles[1]) || '这篇笔记说点实在的';
+    ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.font = '500 38px ' + this.FONT;
+    const sub = this._wrap(ctx, subRaw, this.W - 168).slice(0, 2);
+    y += 24;
+    sub.forEach(l => { ctx.fillText(l, 84, y); y += 52; });
 
     // 中间大 emoji
     ctx.font = '110px sans-serif'; ctx.textAlign = 'center';
@@ -92,24 +93,19 @@ const XhsCards = {
     this._rrect(ctx, 64, 150, this.W - 128, 200, 24); ctx.fill();
     ctx.fillStyle = this.RED; ctx.font = '700 44px ' + this.FONT;
     ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-    ctx.fillText('💡 先戳一下痛点', 100, 182);
+    ctx.fillText('💡 痛点共鸣', 100, 182);
 
-    // 正文前 1-2 句做成大号钩子
-    const body = (r.body || '').replace(/\n+/g, ' ').trim();
-    const hook = body.split(/[。！？!?]/).slice(0, 2).join('。') + (body ? '。' : '');
-    const short = hook.length > 90 ? hook.slice(0, 90) + '…' : hook;
+    // 用主题相关的具体痛点，不再是body截取的元内容
+    const pains = (r.painPoints && r.painPoints.length) ? r.painPoints.slice(0, 3) : ['这个主题，有太多人被误解。', '关于它，你是不是也有一肚子话？', '评论区说说你的经历 👇'];
 
-    ctx.fillStyle = this.INK; ctx.font = '800 58px ' + this.FONT;
-    const lines = this._wrap(ctx, short, this.W - 200);
-    let y = 430;
-    lines.slice(0, 8).forEach(l => { ctx.fillText(l, 100, y); y += 86; });
-
-    // 红色强调框
-    ctx.fillStyle = this.RED; ctx.font = '700 42px ' + this.FONT;
-    ctx.fillText('你，中招了吗？', 100, y + 40);
-    ctx.strokeStyle = this.RED; ctx.lineWidth = 5;
-    const ul = this._wrap(ctx, '你，中招了吗？', this.W - 200);
-    ctx.strokeRect(100, y + 40 + 52, ul.length ? ctx.measureText(ul[0]) + 20 : 400, 6);
+    ctx.fillStyle = this.INK; ctx.font = '600 44px ' + this.FONT;
+    let y = 400;
+    pains.forEach((p, idx) => {
+      const prefix = (idx + 1) + '. ';
+      const lines = this._wrap(ctx, prefix + p, this.W - 220);
+      lines.slice(0, 3).forEach(l => { ctx.fillText(l, 100, y); y += 72; });
+      y += 30;
+    });
 
     this._foot(ctx);
   },
@@ -120,9 +116,9 @@ const XhsCards = {
     this._brandBar(ctx);
     ctx.fillStyle = this.INK; ctx.font = '800 52px ' + this.FONT;
     ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-    ctx.fillText('📋 照着做就能上手', 100, 160);
+    ctx.fillText('📋 干货清单', 100, 160);
 
-    const items = (r.outline && r.outline.length ? r.outline : ['拆解主题', '找切入点', '搭结构', '写正文', '做封面'])
+    const items = (r.tips && r.tips.length ? r.tips : ['拆解主题', '找切入点', '搭结构', '写正文', '做封面'])
       .slice(0, 5);
     let y = 300;
     items.forEach((it, i) => {

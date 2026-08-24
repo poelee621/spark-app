@@ -63,6 +63,16 @@ function render(r, source) {
     if (r.outro) h += '<div class="bodyText">' + r.outro + '</div>';
     if (r.golden) h += '<div class="golden" style="margin-top:10px">' + r.golden + '</div>';
     h += '</div>';
+  } else if (plat === 'xhs' || r.plat === 'xhs') {
+    // 小红书：显示可直接发布的笔记内容（痛点+干货+正文+金句），不再显示元教程大纲
+    h += '<div class="sec"><h4><span class="dot"></span>正文（可直接发笔记）</h4><div class="bodyText">' + (r.body || '').replace(/\n/g, '<br>') + '</div></div>';
+    if (r.painPoints && r.painPoints.length) {
+      h += '<div class="sec"><h4><span class="dot"></span>痛点共鸣</h4><div class="bodyText">' + r.painPoints.map((x, i) => (i + 1) + '. ' + x).join('\n') + '</div></div>';
+    }
+    if (r.tips && r.tips.length) {
+      h += '<div class="sec"><h4><span class="dot"></span>干货清单</h4><div class="bodyText">' + r.tips.map((x, i) => (i + 1) + '. ' + x).join('\n') + '</div></div>';
+    }
+    if (r.golden) h += '<div class="sec"><h4><span class="dot"></span>金句</h4><div class="golden">' + r.golden + '</div></div>';
   } else {
     h += '<div class="sec"><h4><span class="dot"></span>内容提纲</h4><div class="bodyText">';
     (r.outline || []).forEach((s, i) => { h += (i + 1) + '. ' + s + '\n'; });
