@@ -315,10 +315,10 @@ function refreshAIHint() {
   if (!el) return;
   if (LLM.enabled()) {
     el.className = 'aiHint ok';
-    el.innerHTML = '● 已接入大模型（' + (LLM.PROVIDERS[LLM.cfg().provider]?.name || '') + '），本次生成走 AI';
+    el.innerHTML = '● 已接入平台大模型（默认 DeepSeek），本次生成走 AI，<b>无需填 Key</b>';
   } else {
     el.className = 'aiHint warn';
-    el.innerHTML = '⚠️ 未配置 DeepSeek Key，当前为<b>规则引擎</b>（质量较差）。去「关于」页粘贴你的 DeepSeek Key 启用大模型。';
+    el.innerHTML = '⚠️ 平台 AI 代理未部署，当前为<b>规则引擎</b>（质量较差）。可在「关于」页粘贴你自己的 DeepSeek Key 启用大模型。';
   }
 }
 function loadAI() {
@@ -327,9 +327,13 @@ function loadAI() {
   $('#aiKey').value = c.apiKey || '';
   $('#aiModel').value = c.model || '';
   $('#aiBase').value = c.baseUrl || '';
-  $('#aiStatus').innerHTML = LLM.enabled()
-    ? '<b style="color:var(--ok)">● 已启用大模型</b>（' + (LLM.PROVIDERS[c.provider]?.name || '') + '）'
-    : '<span style="color:var(--sub)">○ 当前为规则引擎（未配置 Key）</span>';
+  if (LLM.proxyOn()) {
+    $('#aiStatus').innerHTML = '<b style="color:var(--ok)">● 平台 AI 已启用</b>（默认 DeepSeek，所有用户共用，无需填 Key）';
+  } else if (LLM.enabled()) {
+    $('#aiStatus').innerHTML = '<b style="color:var(--ok)">● 已启用你自带的大模型</b>（' + (LLM.PROVIDERS[c.provider]?.name || '') + '）';
+  } else {
+    $('#aiStatus').innerHTML = '<span style="color:var(--sub)">○ 平台代理未部署，也未填 Key，当前为规则引擎</span>';
+  }
   refreshAIHint();
 }
 loadAI();
@@ -341,6 +345,6 @@ $('#aiSave').onclick = () => {
     baseUrl: $('#aiBase').value.trim()
   });
   loadAI();
-  toast(LLM.enabled() ? '已保存，下次生成走大模型 🤖' : '未填 Key，仍用规则引擎');
+  toast(LLM.proxyOn() ? '已保存（自带 Key 将覆盖平台 AI）🤖' : (LLM.enabled() ? '已保存，下次生成走你自带的大模型 🤖' : '未填 Key，仍用规则引擎'));
 };
-$('#aiClear').onclick = () => { LLM.clear(); loadAI(); toast('已清除 Key'); };
+$('#aiClear').onclick = () => { LLM.clear(); loadAI(); toast('已清除自带 Key，改回平台 AI'); };

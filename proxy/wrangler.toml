@@ -1,0 +1,11 @@
+name = "spark-deepseek-proxy"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# 限流用的 KV（可选但建议）。
+# 1) 执行：wrangler kv namespace create RATE
+# 2) 把返回的 id 填到下面的 id 字段
+# 若不绑定 KV，worker 仍可工作，只是不做每日限流（有被刷风险）。
+[[kv_namespaces]]
+binding = "RATE"
+id = "REPLACE_WITH_YOUR_KV_ID"
