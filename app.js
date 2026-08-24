@@ -186,7 +186,7 @@ function toast(m) {
 let selectedPlan = 'yearly';
 function refreshPlanUI() {
   document.querySelectorAll('#planRow .plan').forEach(el => el.classList.toggle('on', el.dataset.plan === selectedPlan));
-  $('#subBtn').textContent = '订阅闪写 Pro · ' + (selectedPlan === 'monthly' ? '¥18/月' : '¥98/年');
+  $('#subBtn').textContent = '订阅闪写 Pro · ' + (selectedPlan === 'monthly' ? '¥9.9/月' : '¥98/年');
 }
 $('#planRow').onclick = e => {
   const el = e.target.closest('.plan');
