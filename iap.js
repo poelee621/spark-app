@@ -12,7 +12,7 @@ const IAP = {
     const C = window.Capacitor;
     return (C && C.Plugins && C.Plugins.Purchases) || window.Purchases || null;
   },
-  isConfigured() { return this._plugin() && !!this.API_KEY; },
+  isConfigured() { return this._ready && !!this.API_KEY; },
   async init() {
     const p = this._plugin();
     if (!p || !this.API_KEY) { this._ready = false; return false; }

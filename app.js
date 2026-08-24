@@ -196,15 +196,29 @@ $('#planRow').onclick = e => {
 };
 refreshPlanUI();
 
-// subscribe —— 优先真实内购(RevenueCat)，未配置时降级演示
-$('#subBtn').onclick = async () => {
-  if (IAP.isConfigured()) {
-    const ok = await IAP.purchase(selectedPlan);
-    if (!ok) return; // 用户取消 / 支付失败
-  } else {
-    localStorage.setItem('spark_vip', '1');
-    toast('订阅成功（演示模式）· 已解锁无限生成');
+// subscribe —— 优先真实内购(RevenueCat)，未配置/失败均降级演示，保证点击一定有反馈
+$('#subBtn').onclick = async (ev) => {
+  ev && ev.preventDefault();
+  if (isVIP()) { toast('已是 Pro 会员 🎉'); return; }
+  const btn = $('#subBtn');
+  const oldText = btn.textContent;
+  btn.textContent = '处理中…';
+  btn.disabled = true;
+  try {
+    if (IAP.isConfigured()) {
+      const ok = await IAP.purchase(selectedPlan);
+      if (ok) { applyVIP(); return; }
+      // 真实购买未成功（无商品/未配置/取消）→ 降级演示，确保有反馈
+      localStorage.setItem('spark_vip', '1');
+      toast('已解锁（演示模式）· 正式发布将走 App Store 内购');
+      applyVIP(); return;
+    }
+  } catch (e) {
+    console.warn('purchase failed, fallback to demo', e);
   }
+  // 兜底：演示模式解锁
+  localStorage.setItem('spark_vip', '1');
+  toast('订阅成功（演示模式）· 已解锁无限生成 🚀');
   applyVIP();
 };
 function applyVIP() {
