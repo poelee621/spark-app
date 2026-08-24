@@ -2,23 +2,25 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>闪写 Spark · 中文创作灵感助手</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <div class="phone">
-  <header>
-    <div class="logo">S</div>
-    <div class="brand">闪写 Spark<small>中文创作灵感助手</small></div>
+  <header class="hd">
+    <div class="hd-in">
+      <div class="logo">S</div>
+      <div class="brand">闪写 Spark<small>中文创作灵感助手</small></div>
+    </div>
   </header>
 
-  <div class="tabs">
-    <div class="tab on" data-p="create">创作</div>
-    <div class="tab" data-p="vip">会员</div>
-    <div class="tab" data-p="ai">AI</div>
-    <div class="tab" data-p="about">关于</div>
-  </div>
+  <nav class="tabs">
+    <div class="tab on" data-p="create"><span class="t-ico">✍️</span>创作</div>
+    <div class="tab" data-p="vip"><span class="t-ico">👑</span>会员</div>
+    <div class="tab" data-p="ai"><span class="t-ico">🤖</span>AI</div>
+    <div class="tab" data-p="about"><span class="t-ico">ℹ️</span>关于</div>
+  </nav>
 
   <main>
     <!-- 创作 -->
@@ -26,24 +28,34 @@
       <div class="card">
         <label>① 选择平台</label>
         <div class="row" id="platRow">
-          <div class="chip on" data-v="wechat">公众号</div>
-          <div class="chip" data-v="xhs">小红书</div>
-          <div class="chip" data-v="video">短视频</div>
+          <div class="chip on" data-v="wechat"><span class="c-ico">📢</span>公众号</div>
+          <div class="chip" data-v="xhs"><span class="c-ico">📕</span>小红书</div>
+          <div class="chip" data-v="video"><span class="c-ico">🎬</span>短视频</div>
         </div>
         <label>② 输入主题 / 关键词</label>
         <input id="topic" placeholder="例如：年轻人为什么不爱存钱" />
         <label style="margin-top:10px">③ 选择文风</label>
         <div class="row" id="styleRow">
-          <div class="chip on" data-v="sharp">犀利质疑</div>
-          <div class="chip" data-v="warm">温情走心</div>
-          <div class="chip" data-v="practical">干货实操</div>
-          <div class="chip" data-v="suspense">悬念反转</div>
+          <div class="chip on" data-v="sharp"><span class="c-ico">🔥</span>犀利质疑</div>
+          <div class="chip" data-v="warm"><span class="c-ico">💛</span>温情走心</div>
+          <div class="chip" data-v="practical"><span class="c-ico">📋</span>干货实操</div>
+          <div class="chip" data-v="suspense"><span class="c-ico">🕵️</span>悬念反转</div>
         </div>
       </div>
       <div class="counter" id="counter"></div>
-      <button class="btn" id="genBtn">⚡ 一键生成</button>
+      <button class="btn" id="genBtn"><span class="b-ico">⚡</span> 一键生成</button>
+
       <div class="card out" id="out">
         <div class="empty">填好主题，点「一键生成」，标题 / 提纲 / 正文 / 金句马上到手。</div>
+      </div>
+
+      <!-- 小红书图文卡片（xhs 平台生成后显示） -->
+      <div class="card xhs-card" id="xhsCard" style="display:none">
+        <div class="xhs-head">
+          <span class="xhs-tag">📕 小红书图文</span>
+          <span class="xhs-tip">长按图片可保存到相册</span>
+        </div>
+        <div class="xhs-grid" id="xhsGrid"></div>
       </div>
     </section>
 
@@ -68,7 +80,7 @@
         </div>
         <div class="perk" style="text-align:left;margin-top:12px">
           <b>会员权益</b><br>
-          ✦ 无限次一键生成（免费版每日 3 次）<br>
+          ✦ 无限次一键生成（免费版每日 10 次）<br>
           ✦ 5 大文风 + 12 类行业模板<br>
           ✦ 爆款标题库每周更新<br>
           ✦ 导出 Markdown / 一键复制
@@ -120,17 +132,25 @@
       </div>
       <div class="card">
         <h4 style="margin-top:0">联系</h4>
-        <p>商务合作 / 反馈：spark@coldtank.example<br>版本 v0.2</p>
+        <p>商务合作 / 反馈：spark@coldtank.example<br>版本 v0.3</p>
       </div>
     </section>
   </main>
   <footer>闪写 Spark · 坡哥 & 小9 联合出品</footer>
 </div>
+
+<!-- 图片全屏预览 -->
+<div class="viewer" id="viewer" onclick="this.classList.remove('on')">
+  <img id="viewerImg" alt="" />
+  <div class="viewer-tip">长按图片保存 · 点击任意处关闭</div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="generator.js"></script>
 <script src="llm.js"></script>
 <script src="iap.js"></script>
+<script src="xhs_cards.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
