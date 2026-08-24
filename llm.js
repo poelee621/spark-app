@@ -1,6 +1,14 @@
 // 可插拔大模型接口（OpenAI 兼容：DeepSeek / 通义 / 智谱 / OpenAI）
 // 配置存于 localStorage('spark_llm')：{provider, apiKey, model, baseUrl}
-// 关键：未配置 Key 时 app 降级为规则引擎（质量差）；配置后一律走大模型。
+// 默认：所有用户走「平台 AI 代理」（Cloudflare Worker，Key 在服务端），无需填 Key。
+// 进阶：用户可在「关于」页填自带 Key，通过 x-spark-key 头传给 Worker 覆盖平台 Key。
+// 代理未部署时，回退为「用户自带 Key」或规则引擎。
+
+// ===== 平台 AI 代理（Cloudflare Worker）=====
+// 部署后把下面替换成你的真实 worker 地址；保留占位符则视为「代理未部署」，自动回退。
+const PROXY_URL = 'https://spark-deepseek-proxy.YOURSUB.workers.dev/v1/chat/completions';
+const PROXY_PLACEHOLDER = /YOURSUB|YOUR-WORKER|example\.com/i;
+
 const LLM = {
   PROVIDERS: {
     deepseek: { name: 'DeepSeek', base: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
@@ -14,7 +22,9 @@ const LLM = {
   },
   save(c) { localStorage.setItem('spark_llm', JSON.stringify(c)); },
   clear() { localStorage.removeItem('spark_llm'); },
+  proxyOn() { return !!(PROXY_URL && !PROXY_PLACEHOLDER.test(PROXY_URL)); },
   enabled() {
+    if (this.proxyOn()) return true; // 平台代理已部署，所有用户默认走大模型
     const c = this.cfg();
     return !!(c.apiKey && c.provider && this.PROVIDERS[c.provider]);
   },
@@ -128,16 +138,27 @@ cardsHtml 是长度为 4 的数组，每张是 3:4 竖版小红书图文卡的�
 
   async call(plat, style, topic) {
     const c = this.cfg();
+    const useProxy = this.proxyOn();
     const p = this.PROVIDERS[c.provider] || this.PROVIDERS.deepseek;
     const base = c.baseUrl || p.base;
     const model = c.model || p.model;
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 20000); // 20s 超时，移动网络留足余量
     try {
-      const res = await fetch(base + '/chat/completions', {
+      let endpoint, headers = { 'Content-Type': 'application/json' };
+      if (useProxy) {
+        endpoint = PROXY_URL;
+        // 用户若在「关于」页填了自带 key，通过 header 传给 Worker（Worker 会改用它）
+        if (c.apiKey) headers['x-spark-key'] = c.apiKey;
+      } else {
+        endpoint = base + '/chat/completions';
+        if (!c.apiKey) throw new Error('未配置 AI（也无平台代理）');
+        headers['Authorization'] = 'Bearer ' + c.apiKey;
+      }
+      const res = await fetch(endpoint, {
         method: 'POST',
         signal: ctrl.signal,
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + c.apiKey },
+        headers,
         body: JSON.stringify({
           model,
           messages: [
