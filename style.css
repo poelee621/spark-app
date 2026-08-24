@@ -19,10 +19,8 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
 /* ===== 头部（刘海屏适配） ===== */
 .hd{padding:calc(var(--safe-top) + 14px) 18px 8px;}
 .hd-in{display:flex;align-items:center;gap:11px}
-.logo{width:40px;height:40px;border-radius:11px;
-  background:linear-gradient(135deg,var(--acc),var(--acc2));display:grid;place-items:center;
-  font-weight:800;font-size:21px;color:#fff;
-  box-shadow:0 6px 18px rgba(108,140,255,.45), inset 0 1px 0 rgba(255,255,255,.25)}
+.logo{width:42px;height:42px;border-radius:11px;object-fit:cover;flex:none;
+  box-shadow:0 6px 18px rgba(108,140,255,.4)}
 .brand{font-weight:800;font-size:18px;letter-spacing:.5px}
 .brand small{display:block;font-weight:500;font-size:11px;color:var(--sub);letter-spacing:1px}
 
@@ -48,6 +46,7 @@ input,textarea,select{width:100%;background:var(--card2);border:1px solid var(--
   color:var(--txt);border-radius:12px;padding:12px;font-size:14px;outline:none;font-family:inherit;
   transition:border-color .2s}
 textarea{resize:vertical;min-height:64px}
+textarea#topic{min-height:86px;line-height:1.6}
 input:focus,textarea:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(108,140,255,.15)}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .chip{flex:1;min-width:76px;text-align:center;padding:10px 6px;font-size:13px;font-weight:600;

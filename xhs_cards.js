@@ -174,16 +174,20 @@ const XhsCards = {
     ctx.fillText('关注我 · 每天一个创作灵感 📌', this.W / 2, this.H - 70);
   },
 
-  // 生成 4 张，返回 [dataURL,...]
-  generate(r) {
+  // 生成单张（分帧调用避免 UI 卡死）
+  generateOne(r, idx) {
     const makers = [this._cover.bind(this), this._pain.bind(this), this._list.bind(this), this._golden.bind(this)];
-    return makers.map(mk => {
-      const c = document.createElement('canvas');
-      c.width = this.W; c.height = this.H;
-      const ctx = c.getContext('2d');
-      ctx.textBaseline = 'top';
-      mk(ctx, r);
-      return c.toDataURL('image/png');
-    });
+    const c = document.createElement('canvas');
+    c.width = this.W; c.height = this.H;
+    const ctx = c.getContext('2d');
+    ctx.textBaseline = 'top';
+    makers[idx](ctx, r);
+    // JPEG 输出：编码比 PNG 快 5-10 倍、体积小一个量级，图文卡片无透明需求
+    return c.toDataURL('image/jpeg', 0.92);
+  },
+
+  // 生成 4 张，返回 [dataURL,...]（兼容旧调用）
+  generate(r) {
+    return [0, 1, 2, 3].map(i => this.generateOne(r, i));
   }
 };
