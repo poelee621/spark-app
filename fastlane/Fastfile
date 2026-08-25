@@ -4,7 +4,16 @@ platform :ios do
   desc "上传元数据 + 截图，并向 App Store 提交审核"
   lane :submit do
     setup_ci if ENV['CI']
-    # 全部参数见 Deliverfile；此处仅触发 deliver
-    deliver
+
+    # 使用 App Store Connect API Key 鉴权（环境变量由 CI 注入）
+    api_key = app_store_connect_api_key(
+      key_id: ENV['APP_STORE_CONNECT_API_KEY_KEY_ID'],
+      issuer_id: ENV['APP_STORE_CONNECT_API_KEY_ISSUER_ID'],
+      key_filepath: ENV['APP_STORE_CONNECT_API_KEY_KEY_FILEPATH'],
+      in_house: false
+    )
+
+    # 全部参数见 Deliverfile；此处把 API Key 传给 deliver
+    deliver(api_key: api_key)
   end
 end
