@@ -167,6 +167,51 @@
 
   // ===== 小红书 4 张 3:4 卡片 =====
   // 4 张统一大字海报：大字为主、精简凝练、每行不超过 8 字、每张不超过 3 行
+  // 4 张卡片背景各不相同（渐变方向/装饰/构图各异），仅文字不同，保证系列感又不雷同
+  function xhsWrap(idx, t, inner) {
+    var bg;
+    if (idx === 0) {
+      // 封面：主色对角渐变 + 右上光晕 + 左下白光 + 右下装饰 + 右上图标水印
+      bg =
+        '<div style="position:absolute;inset:0;background:linear-gradient(135deg,' + t.g[0] + ' 0%,' + t.g[1] + ' 100%);"></div>' +
+        '<div style="position:absolute;top:-30%;right:-15%;width:60%;height:60%;border-radius:50%;background:radial-gradient(circle,' + t.accent + ' 0%,rgba(0,0,0,0) 70%);opacity:.22;"></div>' +
+        '<div style="position:absolute;bottom:-25%;left:-10%;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(0,0,0,0) 70%);opacity:.10;"></div>' +
+        '<div style="position:absolute;right:0;bottom:0;width:62%;height:62%;opacity:.9;pointer-events:none;">' + t.motif + '</div>' +
+        '<div style="position:absolute;top:6%;right:5%;font-size:84px;line-height:1;opacity:.12;">' + t.icon + '</div>';
+    } else if (idx === 1) {
+      // 反向竖向渐变 + 左上大光斑 + 左上装饰 + 右下图标
+      bg =
+        '<div style="position:absolute;inset:0;background:linear-gradient(160deg,' + t.g[1] + ' 0%,' + t.g[0] + ' 100%);"></div>' +
+        '<div style="position:absolute;top:-20%;left:-15%;width:65%;height:65%;border-radius:50%;background:radial-gradient(circle,' + t.accent + ' 0%,rgba(0,0,0,0) 70%);opacity:.26;"></div>' +
+        '<div style="position:absolute;top:0;left:0;width:62%;height:62%;opacity:.85;pointer-events:none;">' + t.motif + '</div>' +
+        '<div style="position:absolute;bottom:7%;right:6%;font-size:80px;line-height:1;opacity:.12;">' + t.icon + '</div>';
+    } else if (idx === 2) {
+      // 聚光：纯主色底 + 中心径向光 + 双环 + 右上装饰 + 左下图标
+      bg =
+        '<div style="position:absolute;inset:0;background:' + t.g[0] + ';"></div>' +
+        '<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,' + t.accent + ' 0%,rgba(0,0,0,0) 60%);opacity:.30;"></div>' +
+        '<div style="position:absolute;left:50%;top:42%;width:62%;height:62%;transform:translate(-50%,-50%);border-radius:50%;border:2px solid ' + t.accent + ';opacity:.25;"></div>' +
+        '<div style="position:absolute;left:50%;top:42%;width:40%;height:40%;transform:translate(-50%,-50%);border-radius:50%;border:2px solid ' + t.accent + ';opacity:.16;"></div>' +
+        '<div style="position:absolute;right:0;top:0;width:46%;height:46%;opacity:.5;pointer-events:none;">' + t.motif + '</div>' +
+        '<div style="position:absolute;bottom:6%;left:6%;font-size:76px;line-height:1;opacity:.10;">' + t.icon + '</div>';
+    } else {
+      // 斜切：对角渐变 + 斜向强调光带 + 右下白光 + 左上翻转装饰 + 右下图标
+      bg =
+        '<div style="position:absolute;inset:0;background:linear-gradient(135deg,' + t.g[0] + ' 0%,' + t.g[1] + ' 100%);"></div>' +
+        '<div style="position:absolute;inset:0;background:linear-gradient(115deg,rgba(0,0,0,0) 44%,' + t.accent + ' 44%,' + t.accent + ' 58%,rgba(0,0,0,0) 58%);opacity:.16;"></div>' +
+        '<div style="position:absolute;bottom:-20%;right:-12%;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(0,0,0,0) 70%);opacity:.10;"></div>' +
+        '<div style="position:absolute;left:0;top:0;width:55%;height:55%;opacity:.7;pointer-events:none;transform:rotate(180deg);">' + t.motif + '</div>' +
+        '<div style="position:absolute;bottom:7%;right:6%;font-size:78px;line-height:1;opacity:.12;">' + t.icon + '</div>';
+    }
+    return '' +
+      '<section style="position:relative;width:100%;height:100%;overflow:hidden;' +
+      'font-family:-apple-system,BlinkMacSystemFont,\'PingFang SC\',\'Microsoft YaHei\',sans-serif;' +
+      'box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;">' +
+      bg +
+      '<div style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;padding:26px;">' + inner + '</div>' +
+      '</section>';
+  }
+
   function xhsCard(o, idx) {
     var t = themeOf(o.theme);
     var linesArr = Array.isArray(o.cardLines) && o.cardLines.length === 4 ? o.cardLines : [];
@@ -179,7 +224,7 @@
       else if (idx === 3) text = o.golden;
       else text = (idx === 1 ? (o.painPoints || []) : (o.tips || []))[0] || '';
     }
-    return darkWrap(t, shortPoster(t, text));
+    return xhsWrap(idx, t, shortPoster(t, text));
   }
 
   // ===== 短视频 9:16 封面 =====
