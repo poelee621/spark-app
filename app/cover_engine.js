@@ -133,12 +133,20 @@
   // ===== 公众号头条封面 900×383 =====
   function wechat(o) {
     var t = themeOf(o.theme);
+    var title = String(o.title || '');
+    var sub = String(o.sub || o.golden || '');
+    // 按标题长度动态降字号，避免长标题撑爆
+    var titleFs = title.length <= 12 ? 30 : title.length <= 18 ? 26 : 22;
+    var subFs = sub.length <= 24 ? 15 : 14;
+    var clampStyle = 'display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;';
     var inner =
-      '<div style="font-size:30px;font-weight:900;line-height:1.28;color:' + t.ink + ';' +
-      'letter-spacing:.5px;max-width:78%;text-shadow:0 2px 12px rgba(0,0,0,.25);">' + esc(o.title) + '</div>' +
-      (o.sub ? '<div style="margin-top:14px;width:46px;height:3px;background:' + t.accent + ';border-radius:3px;"></div>' +
-        '<div style="margin-top:12px;font-size:15px;line-height:1.6;color:' + t.ink + ';opacity:.82;max-width:74%;">' + esc(o.sub) + '</div>' : '');
-    var deco = '<div style="position:relative;padding:14px 22px 16px;display:flex;align-items:center;justify-content:space-between;">' +
+      '<div style="width:100%;margin-top:auto;">' +
+      '<div style="font-size:' + titleFs + 'px;font-weight:900;line-height:1.28;color:' + t.ink + ';' +
+      'letter-spacing:.5px;max-width:80%;text-shadow:0 2px 12px rgba(0,0,0,.25);' + clampStyle + '-webkit-line-clamp:2;">' + esc(title) + '</div>' +
+      (sub ? '<div style="margin-top:12px;width:40px;height:3px;background:' + t.accent + ';border-radius:3px;"></div>' +
+        '<div style="margin-top:10px;font-size:' + subFs + 'px;line-height:1.55;color:' + t.ink + ';opacity:.85;max-width:78%;' + clampStyle + '-webkit-line-clamp:2;">' + esc(sub) + '</div>' : '') +
+      '</div>';
+    var deco = '<div style="position:relative;padding:12px 22px 14px;display:flex;align-items:center;justify-content:space-between;">' +
       '<span style="font-size:11px;color:' + t.ink + ';opacity:.6;">' + esc(t.label + ' · 深度内容') + '</span>' +
       '<span style="font-size:12px;color:' + t.ink + ';opacity:.7;font-weight:600;">' + today() + '</span></div>';
     return darkWrap(t, inner, { deco: deco, chip: t.label });
