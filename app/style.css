@@ -105,6 +105,8 @@ input:focus,textarea:focus,select:focus{border-color:var(--acc);box-shadow:0 0 0
   background:rgba(0,0,0,.55);padding:2px 8px;border-radius:10px}
 .xhs-item .xhs-zoom{position:absolute;right:6px;bottom:6px;font-size:13px;line-height:1;opacity:.85;
   pointer-events:none;background:rgba(0,0,0,.4);border-radius:50%;padding:4px 5px}
+.xhs-skel{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#1a1a2e,#2a2a44);color:#fff8;font-size:12px}
 .xhs-loading{grid-column:1/-1;text-align:center;color:var(--sub);font-size:12px;padding:18px 0}
 .xhs-loading .spin{display:inline-block;width:16px;height:16px;border:2px solid var(--line);
   border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-3px;margin-right:6px}

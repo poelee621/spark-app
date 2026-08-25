@@ -173,61 +173,62 @@ function renderXhsCardsHTML(r) {
   const theme = coverThemeOf(r);
   const opts = { theme, title: r.titles?.[0] || '', cardLines: r.cardLines || [], golden: r.golden || '' };
   if (!(r.titles && r.titles.length)) { renderXhsCards(r); return; }
-  // 整张卡片可点：点图片弹出全屏滑动画廊（左右切换 / 长按保存）
+  // 先放 4 个骨架占位（无点击），后台生成高清图后再填回
   grid.innerHTML = [0, 1, 2, 3].map(i =>
-    '<div class="xhs-item" onclick="openXhs(' + i + ')">' +
-    '<div class="html-box" id="xhsHtml' + i + '">' + CoverEngine.xhsCard(opts, i) + '</div>' +
+    '<div class="xhs-item"><div class="xhs-skel"><span class="spin"></span></div>' +
     '<span class="xhs-zoom">🔍</span></div>'
   ).join('');
-  buildXhsGallery(); // 后台预生成 4 张 PNG，供画廊滑动与保存
+  buildXhsGallery(r, theme, opts);
 }
 
 // ===== 小红书图文：全屏滑动画廊（点图弹出 / 左右滑切换 / 长按保存） =====
-let xhsGallery = [];        // 4 张 dataURL
+let xhsGallery = [];        // 4 张 dataURL（1080×1440 高清）
 let xhsGalleryReady = false;
 let xhsGalleryBuilding = false;
 let xhsGalleryPromise = null;
 let xhsCurrent = 0;
 let xhsViewer, xhsTrack, xhsDots, xhsCount;
 
-// 把页面上已渲染的 4 个 html-box 转成 PNG 缓存起来（后台异步，不阻塞结果展示）
-function buildXhsGallery() {
+// 离屏 1080×1440 逐张 html2canvas（scale 1 = 原生分辨率，文字清晰无锯齿、不裁切）
+// 生成后既填回网格（缩略清晰），又供画廊滑动/长按保存（原图高清）
+function buildXhsGallery(r, theme, opts) {
   if (xhsGalleryBuilding) return xhsGalleryPromise || Promise.resolve();
-  const els = [0, 1, 2, 3].map(i => document.getElementById('xhsHtml' + i));
-  if (!window.html2canvas || !els.some(Boolean)) {
-    xhsGallery = []; xhsGalleryReady = true; return (xhsGalleryPromise = Promise.resolve());
-  }
   xhsGalleryBuilding = true; xhsGalleryReady = false;
   xhsGallery = new Array(4);
-  let left = els.filter(Boolean).length;
+  let left = 4;
   xhsGalleryPromise = new Promise(resolve => {
-    const done = () => { if (--left <= 0) { xhsGalleryBuilding = false; xhsGalleryReady = true; resolve(); } };
-    els.forEach((el, i) => {
-      if (!el) return done();
-      html2canvas(el, { backgroundColor: null, scale: 2, logging: false })
-        .then(cv => { xhsGallery[i] = cv.toDataURL('image/png'); })
-        .catch(() => {}).finally(done);
+    const done = () => { if (--left <= 0) { xhsGalleryBuilding = false; xhsGalleryReady = true; paintXhsGrid(); resolve(); } };
+    [0, 1, 2, 3].forEach(i => {
+      const host = document.createElement('div');
+      host.style.cssText = 'position:absolute;left:-99999px;top:0;width:1080px;height:1440px;';
+      host.innerHTML = CoverEngine.xhsCard(opts, i);
+      document.body.appendChild(host);
+      const el = host.firstElementChild;
+      const finish = url => { xhsGallery[i] = url || ''; try { document.body.removeChild(host); } catch (e) {} done(); };
+      if (!window.html2canvas) return finish('');
+      html2canvas(el, { backgroundColor: null, scale: 1, logging: false, width: 1080, height: 1440 })
+        .then(cv => finish(cv.toDataURL('image/jpeg', 0.95)))
+        .catch(() => finish(''));
     });
   });
   return xhsGalleryPromise;
 }
 
+// 把生成好的高清图填回网格（缩略显示，点击弹出画廊）
+function paintXhsGrid() {
+  const grid = $('#xhsGrid'); if (!grid) return;
+  grid.innerHTML = xhsGallery.map((u, n) =>
+    '<div class="xhs-item" onclick="openXhs(' + n + ')">' +
+    (u ? '<img src="' + u + '" alt="小红书图文 ' + (n + 1) + '" />' : '<div class="xhs-skel">生成失败</div>') +
+    '<span class="xhs-zoom">🔍</span></div>'
+  ).join('');
+}
+
 // 点某张卡片 -> 打开画廊（确保该图已就绪）
 function openXhs(i) {
-  const start = () => showXhsGallery(i);
-  if (xhsGalleryReady && xhsGallery[i]) return start();
+  if (xhsGalleryReady) return showXhsGallery(i);
   toast('正在准备图片…');
-  (xhsGalleryBuilding ? xhsGalleryPromise : buildXhsGallery()).then(() => {
-    if (!xhsGallery[i]) {
-      const el = document.getElementById('xhsHtml' + i);
-      if (el && window.html2canvas) {
-        html2canvas(el, { backgroundColor: null, scale: 2, logging: false })
-          .then(cv => { xhsGallery[i] = cv.toDataURL('image/png'); start(); });
-        return;
-      }
-    }
-    start();
-  });
+  (xhsGalleryPromise || Promise.resolve()).then(() => showXhsGallery(i));
 }
 
 function cacheXhsEls() {
