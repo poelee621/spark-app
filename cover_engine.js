@@ -144,10 +144,10 @@
     return darkWrap(t, inner, { deco: deco, chip: t.label });
   }
 
-  // 把短文案渲染为大字海报：大字为主、精简、绝不裁切
+  // 把短文案渲染为大字海报：大字占绝对主导、精简、绝不裁切
   // 设计约束：每张最多 3 个视觉行，每行最多 8 字；超过 8 字硬断，超过 3 行截断
   function shortPoster(t, text) {
-    var W = 1028; // 1080 画布 - 左右各 26px padding
+    var W = 980; // 1080 画布 - 左右各 50px padding，给大字足够边距
     var raw = String(text == null ? '' : text).replace(/\r/g, '').trim();
     if (!raw) raw = '闪写Spark'; // 绝对兜底，杜绝空白页
     // 1) 模型意图的行（按 \n 拆分）
@@ -164,24 +164,27 @@
     if (lines.length > 3) lines = lines.slice(0, 3); // 每张严格 ≤3 行
     if (!lines.length) lines = ['闪写Spark'];
     var maxLen = Math.max.apply(null, lines.map(function (s) { return s.length; }));
-    // 3) 字号：按行数 + 最长行，整体放大让文字在卡片里占主导（网格缩略图也清晰可见）
+    var totalChars = lines.join('').length;
+    // 3) 字号：按行数 + 最长行，继续放大一档，让文字在 1080x1440 里占绝对主导
     var fs;
     if (lines.length === 1) {
-      fs = maxLen <= 4 ? 110 : maxLen <= 6 ? 92 : maxLen <= 8 ? 76 : 60;
+      fs = maxLen <= 4 ? 160 : maxLen <= 6 ? 132 : maxLen <= 8 ? 108 : 88;
     } else if (lines.length === 2) {
-      fs = maxLen <= 4 ? 86 : maxLen <= 6 ? 72 : maxLen <= 8 ? 60 : 50;
+      fs = maxLen <= 4 ? 124 : maxLen <= 6 ? 104 : maxLen <= 8 ? 86 : 72;
     } else {
-      fs = maxLen <= 4 ? 70 : maxLen <= 6 ? 60 : maxLen <= 8 ? 52 : 44;
+      fs = maxLen <= 4 ? 100 : maxLen <= 6 ? 86 : maxLen <= 8 ? 74 : 62;
     }
-    // 4) 双保险：按容器宽度收缩，确保最长行不溢出
-    var fit = Math.floor(W / Math.max(1, maxLen) * 0.94);
-    if (fs > fit) fs = Math.max(13, fit);
-    var lh = lines.length === 1 ? 1.25 : 1.42;
+    // 4) 双保险：按容器宽度收缩，确保最长行不溢出；同时按总字数再压一点避免拥挤
+    var fit = Math.floor(W / Math.max(1, maxLen) * 0.96);
+    if (fs > fit) fs = Math.max(18, fit);
+    if (totalChars > 16 && lines.length >= 2) fs = Math.max(18, Math.floor(fs * 0.92));
+    var lh = lines.length === 1 ? 1.18 : (lines.length === 2 ? 1.32 : 1.44);
     var html = lines.map(function (s) {
       return '<div style="font-size:' + fs + 'px;font-weight:900;line-height:' + lh + ';color:' + t.ink +
-        ';text-shadow:0 3px 16px rgba(0,0,0,.28);white-space:normal;word-break:break-all;overflow-wrap:break-word;">' + esc(s) + '</div>';
+        ';text-shadow:0 4px 20px rgba(0,0,0,.32);white-space:normal;word-break:break-all;overflow-wrap:break-word;letter-spacing:1px;">' + esc(s) + '</div>';
     }).join('');
-    return '<div style="text-align:center;">' + html + '</div>';
+    // 文字块真正居中、占满画面，不靠边
+    return '<div style="width:100%;max-width:980px;text-align:center;margin:auto;">' + html + '</div>';
   }
 
   // ===== 小红书 4 张 3:4 卡片 =====
@@ -190,44 +193,44 @@
   function xhsWrap(idx, t, inner) {
     var bg;
     if (idx === 0) {
-      // 封面：主色对角渐变 + 右上光晕 + 左下白光 + 右下装饰 + 右上图标水印
+      // 封面：主色对角渐变 + 弱光晕 + 小装饰靠边 + 小图标水印（文字主导）
       bg =
         '<div style="position:absolute;inset:0;background:linear-gradient(135deg,' + t.g[0] + ' 0%,' + t.g[1] + ' 100%);"></div>' +
-        '<div style="position:absolute;top:-30%;right:-15%;width:60%;height:60%;border-radius:50%;background:radial-gradient(circle,' + t.accent + ' 0%,rgba(0,0,0,0) 70%);opacity:.22;"></div>' +
-        '<div style="position:absolute;bottom:-25%;left:-10%;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(0,0,0,0) 70%);opacity:.10;"></div>' +
-        '<div style="position:absolute;right:0;bottom:0;width:62%;height:62%;opacity:.9;pointer-events:none;">' + t.motif + '</div>' +
-        '<div style="position:absolute;top:6%;right:5%;font-size:84px;line-height:1;opacity:.12;">' + t.icon + '</div>';
+        '<div style="position:absolute;top:-25%;right:-12%;width:45%;height:45%;border-radius:50%;background:radial-gradient(circle,' + t.accent + ' 0%,rgba(0,0,0,0) 70%);opacity:.15;"></div>' +
+        '<div style="position:absolute;bottom:-22%;left:-8%;width:40%;height:40%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(0,0,0,0) 70%);opacity:.08;"></div>' +
+        '<div style="position:absolute;right:-5%;bottom:-5%;width:38%;height:38%;opacity:.35;pointer-events:none;">' + t.motif + '</div>' +
+        '<div style="position:absolute;top:5%;right:5%;font-size:44px;line-height:1;opacity:.07;">' + t.icon + '</div>';
     } else if (idx === 1) {
-      // 反向竖向渐变 + 左上大光斑 + 左上装饰 + 右下图标
+      // 反向竖向渐变 + 左上弱光斑 + 左上小装饰 + 右下小图标
       bg =
         '<div style="position:absolute;inset:0;background:linear-gradient(160deg,' + t.g[1] + ' 0%,' + t.g[0] + ' 100%);"></div>' +
-        '<div style="position:absolute;top:-20%;left:-15%;width:65%;height:65%;border-radius:50%;background:radial-gradient(circle,' + t.accent + ' 0%,rgba(0,0,0,0) 70%);opacity:.26;"></div>' +
-        '<div style="position:absolute;top:0;left:0;width:62%;height:62%;opacity:.85;pointer-events:none;">' + t.motif + '</div>' +
-        '<div style="position:absolute;bottom:7%;right:6%;font-size:80px;line-height:1;opacity:.12;">' + t.icon + '</div>';
+        '<div style="position:absolute;top:-18%;left:-12%;width:48%;height:48%;border-radius:50%;background:radial-gradient(circle,' + t.accent + ' 0%,rgba(0,0,0,0) 70%);opacity:.16;"></div>' +
+        '<div style="position:absolute;top:-5%;left:-5%;width:38%;height:38%;opacity:.32;pointer-events:none;">' + t.motif + '</div>' +
+        '<div style="position:absolute;bottom:6%;right:6%;font-size:44px;line-height:1;opacity:.07;">' + t.icon + '</div>';
     } else if (idx === 2) {
-      // 聚光：纯主色底 + 中心径向光 + 双环 + 右上装饰 + 左下图标
+      // 聚光：纯主色底 + 中心弱径向光 + 细双环 + 右上小装饰 + 左下小图标
       bg =
         '<div style="position:absolute;inset:0;background:' + t.g[0] + ';"></div>' +
-        '<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,' + t.accent + ' 0%,rgba(0,0,0,0) 60%);opacity:.30;"></div>' +
-        '<div style="position:absolute;left:50%;top:42%;width:62%;height:62%;transform:translate(-50%,-50%);border-radius:50%;border:2px solid ' + t.accent + ';opacity:.25;"></div>' +
-        '<div style="position:absolute;left:50%;top:42%;width:40%;height:40%;transform:translate(-50%,-50%);border-radius:50%;border:2px solid ' + t.accent + ';opacity:.16;"></div>' +
-        '<div style="position:absolute;right:0;top:0;width:46%;height:46%;opacity:.5;pointer-events:none;">' + t.motif + '</div>' +
-        '<div style="position:absolute;bottom:6%;left:6%;font-size:76px;line-height:1;opacity:.10;">' + t.icon + '</div>';
+        '<div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,' + t.accent + ' 0%,rgba(0,0,0,0) 55%);opacity:.18;"></div>' +
+        '<div style="position:absolute;left:50%;top:50%;width:54%;height:54%;transform:translate(-50%,-50%);border-radius:50%;border:1px solid ' + t.accent + ';opacity:.16;"></div>' +
+        '<div style="position:absolute;left:50%;top:50%;width:34%;height:34%;transform:translate(-50%,-50%);border-radius:50%;border:1px solid ' + t.accent + ';opacity:.10;"></div>' +
+        '<div style="position:absolute;right:-3%;top:-3%;width:34%;height:34%;opacity:.28;pointer-events:none;">' + t.motif + '</div>' +
+        '<div style="position:absolute;bottom:6%;left:6%;font-size:44px;line-height:1;opacity:.06;">' + t.icon + '</div>';
     } else {
-      // 斜切：对角渐变 + 斜向强调光带 + 右下白光 + 左上翻转装饰 + 右下图标
+      // 斜切：对角渐变 + 斜向弱光带 + 右下白光 + 左上小翻转装饰 + 右下小图标
       bg =
         '<div style="position:absolute;inset:0;background:linear-gradient(135deg,' + t.g[0] + ' 0%,' + t.g[1] + ' 100%);"></div>' +
-        '<div style="position:absolute;inset:0;background:linear-gradient(115deg,rgba(0,0,0,0) 44%,' + t.accent + ' 44%,' + t.accent + ' 58%,rgba(0,0,0,0) 58%);opacity:.16;"></div>' +
-        '<div style="position:absolute;bottom:-20%;right:-12%;width:55%;height:55%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(0,0,0,0) 70%);opacity:.10;"></div>' +
-        '<div style="position:absolute;left:0;top:0;width:55%;height:55%;opacity:.7;pointer-events:none;transform:rotate(180deg);">' + t.motif + '</div>' +
-        '<div style="position:absolute;bottom:7%;right:6%;font-size:78px;line-height:1;opacity:.12;">' + t.icon + '</div>';
+        '<div style="position:absolute;inset:0;background:linear-gradient(115deg,rgba(0,0,0,0) 46%,' + t.accent + ' 46%,' + t.accent + ' 56%,rgba(0,0,0,0) 56%);opacity:.10;"></div>' +
+        '<div style="position:absolute;bottom:-18%;right:-10%;width:42%;height:42%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.9) 0%,rgba(0,0,0,0) 70%);opacity:.08;"></div>' +
+        '<div style="position:absolute;left:-5%;top:-5%;width:36%;height:36%;opacity:.30;pointer-events:none;transform:rotate(180deg);">' + t.motif + '</div>' +
+        '<div style="position:absolute;bottom:6%;right:6%;font-size:44px;line-height:1;opacity:.07;">' + t.icon + '</div>';
     }
     return '' +
       '<section style="position:relative;width:100%;height:100%;overflow:hidden;' +
       'font-family:-apple-system,BlinkMacSystemFont,\'PingFang SC\',\'Microsoft YaHei\',sans-serif;' +
       'box-sizing:border-box;display:flex;flex-direction:column;justify-content:space-between;">' +
       bg +
-      '<div style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;padding:26px;">' + inner + '</div>' +
+      '<div style="position:relative;flex:1;display:flex;align-items:center;justify-content:center;padding:50px;">' + inner + '</div>' +
       '</section>';
   }
 
