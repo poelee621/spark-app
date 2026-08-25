@@ -144,23 +144,37 @@
     return darkWrap(t, inner, { deco: deco, chip: t.label });
   }
 
-  // 把短文案拆成最多 3 行、每行最多 8 字，并渲染为大字海报
+  // 把短文案渲染为大字海报：防弹版——空值必救场、超长必断行、永不裁切、字号自适应收缩
+  // 设计约束：每张最多 4 个视觉行，每个视觉行最多 8 字（超过按 8 字硬断，保留大字观感）
   function shortPoster(t, text) {
-    var raw = String(text == null ? '' : text).replace(/\\n/g, '\n').trim();
-    var lines = raw.split(/\n/).map(function (s) { return s.trim().replace(/^["“”']+|["“”']+$/g, ''); }).filter(function (s) { return s; });
-    if (!lines.length) lines = [''];
-    if (lines.length > 3) lines = lines.slice(0, 3);
+    var W = 1028; // 1080 画布 - 左右各 26px padding
+    var raw = String(text == null ? '' : text).replace(/\r/g, '').trim();
+    if (!raw) raw = '闪写Spark'; // 绝对兜底，杜绝空白页
+    // 1) 模型意图的行（按 \n 拆分）
+    var intent = raw.split(/\n/).map(function (s) {
+      return s.trim().replace(/^["“”'']+|["“”'']+$/g, '');
+    }).filter(function (s) { return s; });
+    if (!intent.length) intent = ['闪写Spark'];
+    // 2) 每个意图行超过 8 字则按 8 字硬断（保证大字且不错位/裁切）
+    var lines = [];
+    intent.forEach(function (s) {
+      while (s.length > 8) { lines.push(s.slice(0, 8)); s = s.slice(8); }
+      if (s.length) lines.push(s);
+    });
+    if (lines.length > 4) lines = lines.slice(0, 4); // 超过 4 视觉行则截断，避免溢出高度
+    if (!lines.length) lines = ['闪写Spark'];
     var maxLen = Math.max.apply(null, lines.map(function (s) { return s.length; }));
-    var totalChars = lines.join('').length;
+    // 3) 字号：先看行数再看最长行
     var fs;
-    if (lines.length === 1) fs = maxLen <= 6 ? 34 : (maxLen <= 8 ? 28 : 24);
-    else if (lines.length === 2) fs = maxLen <= 6 ? 26 : (maxLen <= 8 ? 22 : 19);
-    else fs = maxLen <= 6 ? 22 : (maxLen <= 8 ? 19 : 17);
-    // 总字数很多时再压一点
-    if (totalChars > 18) fs = Math.max(17, fs - 2);
-    var lh = lines.length === 1 ? 1.35 : 1.5;
+    if (lines.length <= 2) fs = maxLen <= 4 ? 40 : maxLen <= 6 ? 34 : maxLen <= 8 ? 28 : 22;
+    else fs = maxLen <= 4 ? 32 : maxLen <= 6 ? 26 : maxLen <= 8 ? 22 : 18;
+    // 4) 双保险：按容器宽度收缩，配合换行绝对不会裁切
+    var fit = Math.floor(W / Math.max(1, maxLen) * 0.94);
+    if (fs > fit) fs = Math.max(13, fit);
+    var lh = 1.42;
     var html = lines.map(function (s) {
-      return '<div style="font-size:' + fs + 'px;font-weight:900;line-height:' + lh + ';color:' + t.ink + ';text-shadow:0 2px 10px rgba(0,0,0,.25);white-space:nowrap;">' + esc(s) + '</div>';
+      return '<div style="font-size:' + fs + 'px;font-weight:900;line-height:' + lh + ';color:' + t.ink +
+        ';text-shadow:0 2px 10px rgba(0,0,0,.25);white-space:normal;word-break:break-all;overflow-wrap:break-word;">' + esc(s) + '</div>';
     }).join('');
     return '<div style="text-align:center;">' + html + '</div>';
   }
@@ -218,11 +232,19 @@
     var text;
     if (linesArr[idx]) {
       text = linesArr[idx];
+    } else if (idx === 0) {
+      text = o.title;
+    } else if (idx === 3) {
+      text = o.golden;
     } else {
-      // 旧数据回退：从既有字段里挑最短的
-      if (idx === 0) text = o.title;
-      else if (idx === 3) text = o.golden;
-      else text = (idx === 1 ? (o.painPoints || []) : (o.tips || []))[0] || '';
+      // 旧数据回退：从痛点/干货里挑
+      text = (idx === 1 ? (o.painPoints || []) : (o.tips || []))[0] || '';
+    }
+    // 兜底救场：本项为空时，用同主题其他字段补，确保 4 张都不空白（覆盖 8 文风任何一项缺失）
+    if (!text || !String(text).trim()) {
+      var rescue = [o.title, (o.painPoints || [])[0], (o.tips || [])[0], o.golden]
+        .filter(function (s) { return s && String(s).trim(); });
+      text = rescue.length ? rescue[Math.min(idx, rescue.length - 1)] : '闪写Spark';
     }
     return xhsWrap(idx, t, shortPoster(t, text));
   }
