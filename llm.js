@@ -4,8 +4,13 @@
 // 进阶：用户可在「关于」页填自带 Key，通过 x-spark-key 头传给 Worker 覆盖平台 Key。
 // 代理未部署时，回退为「用户自带 Key」或规则引擎。
 
-// ===== 平台 AI 代理（Cloudflare Worker）=====
-// 部署后把下面替换成你的真实 worker 地址；保留占位符则视为「代理未部署」，自动回退。
+// ===== 内置 DeepSeek Key（默认直连，国内网络最快最稳）=====
+// 直连 api.deepseek.com 在国内无需 VPN；Cloudflare workers.dev 在手机移动网络下不稳定，仅作回退。
+// 发布前把下面的占位符替换为你的 DeepSeek API Key（sk-...），替换后所有用户默认走直连。
+// ⚠️ 风险：Key 内置于前端可被抓包看到，请控制 DeepSeek 账户余额/用量；正式上架前建议换国内 Serverless 代理。
+const BUILTIN_KEY = 'REPLACE_WITH_DEEPSEEK_KEY';
+
+// ===== 平台 AI 代理（Cloudflare Worker，仅当未内置 Key 时作为回退）=====
 const PROXY_URL = 'https://spark-deepseek-proxy.1012425851.workers.dev/v1/chat/completions';
 const PROXY_PLACEHOLDER = /YOURSUB|YOUR-WORKER|example\.com/i;
 
@@ -22,9 +27,12 @@ const LLM = {
   },
   save(c) { localStorage.setItem('spark_llm', JSON.stringify(c)); },
   clear() { localStorage.removeItem('spark_llm'); },
+  builtinKey() {
+    return (BUILTIN_KEY && !/REPLACE_WITH/.test(BUILTIN_KEY)) ? BUILTIN_KEY : '';
+  },
   proxyOn() { return !!(PROXY_URL && !PROXY_PLACEHOLDER.test(PROXY_URL)); },
   enabled() {
-    if (this.proxyOn()) return true; // 平台代理已部署，所有用户默认走大模型
+    if (this.builtinKey()) return true; // 内置 Key 直连，所有用户默认走大模型
     const c = this.cfg();
     return !!(c.apiKey && c.provider && this.PROVIDERS[c.provider]);
   },
@@ -140,7 +148,8 @@ ${typeGuide}
 
   async call(plat, style, topic) {
     const c = this.cfg();
-    const useProxy = this.proxyOn();
+    // 有内置 Key → 默认直连 api.deepseek.com（国内最快）；否则回退 Cloudflare Worker 代理
+    const useProxy = this.proxyOn() && !this.builtinKey();
     const p = this.PROVIDERS[c.provider] || this.PROVIDERS.deepseek;
     const base = c.baseUrl || p.base;
     const model = c.model || p.model;
@@ -157,8 +166,10 @@ ${typeGuide}
           if (c.apiKey) headers['x-spark-key'] = c.apiKey;
         } else {
           endpoint = base + '/chat/completions';
-          if (!c.apiKey) throw new Error('未配置 AI（也无平台代理）');
-          headers['Authorization'] = 'Bearer ' + c.apiKey;
+          // 优先用户自带 Key，否则用内置 Key（直连 DeepSeek，国内无墙无需代理）
+          const key = c.apiKey || this.builtinKey();
+          if (!key) throw new Error('未配置 AI');
+          headers['Authorization'] = 'Bearer ' + key;
         }
         const res = await fetch(endpoint, {
           method: 'POST',
