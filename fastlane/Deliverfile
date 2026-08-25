@@ -22,6 +22,9 @@ skip_metadata false
 overwrite_screenshots true
 automatic_release true
 
+# precheck 默认会检查 IAP，但 API Key 暂不支持；本 App 无 IAP，直接排除
+precheck_include_in_app_purchases false
+
 # 提交时回答的合规问题
 # 本 App：不收集用户真实身份、无加密出口限制、无广告、无 IDFA、无第三方内容
 submission_information({
