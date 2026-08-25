@@ -169,7 +169,7 @@ function renderXhsCardsHTML(r) {
   const card = $('#xhsCard'), grid = $('#xhsGrid');
   card.style.display = 'block';
   const theme = coverThemeOf(r);
-  const opts = { theme, title: r.titles?.[0] || '', painPoints: r.painPoints || [], tips: r.tips || [], golden: r.golden || '' };
+  const opts = { theme, title: r.titles?.[0] || '', cardLines: r.cardLines || [], golden: r.golden || '' };
   if (!(r.titles && r.titles.length)) { renderXhsCards(r); return; }
   grid.innerHTML = [0, 1, 2, 3].map(i =>
     '<div class="xhs-cell"><div class="xhs-item"><div class="html-box" id="xhsHtml' + i + '">' + CoverEngine.xhsCard(opts, i) + '</div></div>' +

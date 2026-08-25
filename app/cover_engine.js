@@ -144,37 +144,42 @@
     return darkWrap(t, inner, { deco: deco, chip: t.label });
   }
 
+  // 把短文案拆成最多 3 行、每行最多 8 字，并渲染为大字海报
+  function shortPoster(t, text) {
+    var raw = String(text == null ? '' : text).replace(/\\n/g, '\n').trim();
+    var lines = raw.split(/\n/).map(function (s) { return s.trim().replace(/^["“”']+|["“”']+$/g, ''); }).filter(function (s) { return s; });
+    if (!lines.length) lines = [''];
+    if (lines.length > 3) lines = lines.slice(0, 3);
+    var maxLen = Math.max.apply(null, lines.map(function (s) { return s.length; }));
+    var totalChars = lines.join('').length;
+    var fs;
+    if (lines.length === 1) fs = maxLen <= 6 ? 34 : (maxLen <= 8 ? 28 : 24);
+    else if (lines.length === 2) fs = maxLen <= 6 ? 26 : (maxLen <= 8 ? 22 : 19);
+    else fs = maxLen <= 6 ? 22 : (maxLen <= 8 ? 19 : 17);
+    // 总字数很多时再压一点
+    if (totalChars > 18) fs = Math.max(17, fs - 2);
+    var lh = lines.length === 1 ? 1.35 : 1.5;
+    var html = lines.map(function (s) {
+      return '<div style="font-size:' + fs + 'px;font-weight:900;line-height:' + lh + ';color:' + t.ink + ';text-shadow:0 2px 10px rgba(0,0,0,.25);white-space:nowrap;">' + esc(s) + '</div>';
+    }).join('');
+    return '<div style="text-align:center;">' + html + '</div>';
+  }
+
   // ===== 小红书 4 张 3:4 卡片 =====
-  // idx: 0 封面 / 1 痛点 / 2 干货 / 3 金句 —— 无品牌/无logo/无分类提示词/无编号/无竖条，纯内容
-  // 3:4 竖卡空间有限：痛点/干货统一最多 3 条，字号按内容长度分级，保证文字完整显示不裁切
+  // 4 张统一大字海报：大字为主、精简凝练、每行不超过 8 字、每张不超过 3 行
   function xhsCard(o, idx) {
     var t = themeOf(o.theme);
-    if (idx === 0) {
-      // 封面：只有大标题 + 引导按钮
-      var fs0 = (o.title || '').length > 16 ? 20 : 22;
-      var inner0 =
-        '<div style="font-size:' + fs0 + 'px;font-weight:900;line-height:1.34;color:' + t.ink + ';text-shadow:0 2px 10px rgba(0,0,0,.25);">' + esc(o.title) + '</div>' +
-        '<div style="margin-top:14px;display:inline-block;font-size:12px;font-weight:700;color:' + t.g[0] + ';background:' + t.accent + ';padding:5px 13px;border-radius:22px;">点击查看全文 ›</div>';
-      return darkWrap(t, inner0);
+    var linesArr = Array.isArray(o.cardLines) && o.cardLines.length === 4 ? o.cardLines : [];
+    var text;
+    if (linesArr[idx]) {
+      text = linesArr[idx];
+    } else {
+      // 旧数据回退：从既有字段里挑最短的
+      if (idx === 0) text = o.title;
+      else if (idx === 3) text = o.golden;
+      else text = (idx === 1 ? (o.painPoints || []) : (o.tips || []))[0] || '';
     }
-    if (idx === 3) {
-      // 金句：低调引号 + 金句文字
-      var fs3 = (o.golden || '').length > 24 ? 16 : 18;
-      var inner3 =
-        '<div style="font-size:48px;line-height:.8;color:' + t.accent + ';opacity:.4;margin-bottom:8px;font-family:Georgia,serif;">“</div>' +
-        '<div style="font-size:' + fs3 + 'px;font-weight:800;line-height:1.5;color:' + t.ink + ';text-shadow:0 2px 10px rgba(0,0,0,.25);">' + esc(o.golden) + '</div>';
-      return darkWrap(t, inner3);
-    }
-    // 亮底：痛点 / 干货 —— 纯段落、无编号无竖条、文字占满全宽，最多 3 条保证完整显示
-    var items = (idx === 1 ? (o.painPoints || []) : (o.tips || [])).slice(0, 3);
-    var rows = '';
-    for (var i = 0; i < items.length; i++) {
-      rows +=
-        '<div style="margin-bottom:' + (i === items.length - 1 ? 0 : 13) + 'px;">' +
-        '<div style="font-size:13.5px;line-height:1.55;color:#1b2038;font-weight:500;">' + esc(items[i]) + '</div>' +
-        '</div>';
-    }
-    return lightWrap(t, rows);
+    return darkWrap(t, shortPoster(t, text));
   }
 
   // ===== 短视频 9:16 封面 =====
