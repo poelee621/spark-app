@@ -144,8 +144,8 @@
     return darkWrap(t, inner, { deco: deco, chip: t.label });
   }
 
-  // 把短文案渲染为大字海报：防弹版——空值必救场、超长必断行、永不裁切、字号自适应收缩
-  // 设计约束：每张最多 4 个视觉行，每个视觉行最多 8 字（超过按 8 字硬断，保留大字观感）
+  // 把短文案渲染为大字海报：大字为主、精简、绝不裁切
+  // 设计约束：每张最多 3 个视觉行，每行最多 8 字；超过 8 字硬断，超过 3 行截断
   function shortPoster(t, text) {
     var W = 1028; // 1080 画布 - 左右各 26px padding
     var raw = String(text == null ? '' : text).replace(/\r/g, '').trim();
@@ -161,20 +161,25 @@
       while (s.length > 8) { lines.push(s.slice(0, 8)); s = s.slice(8); }
       if (s.length) lines.push(s);
     });
-    if (lines.length > 4) lines = lines.slice(0, 4); // 超过 4 视觉行则截断，避免溢出高度
+    if (lines.length > 3) lines = lines.slice(0, 3); // 每张严格 ≤3 行
     if (!lines.length) lines = ['闪写Spark'];
     var maxLen = Math.max.apply(null, lines.map(function (s) { return s.length; }));
-    // 3) 字号：先看行数再看最长行
+    // 3) 字号：按行数 + 最长行，整体放大让文字在卡片里占主导（网格缩略图也清晰可见）
     var fs;
-    if (lines.length <= 2) fs = maxLen <= 4 ? 40 : maxLen <= 6 ? 34 : maxLen <= 8 ? 28 : 22;
-    else fs = maxLen <= 4 ? 32 : maxLen <= 6 ? 26 : maxLen <= 8 ? 22 : 18;
-    // 4) 双保险：按容器宽度收缩，配合换行绝对不会裁切
+    if (lines.length === 1) {
+      fs = maxLen <= 4 ? 110 : maxLen <= 6 ? 92 : maxLen <= 8 ? 76 : 60;
+    } else if (lines.length === 2) {
+      fs = maxLen <= 4 ? 86 : maxLen <= 6 ? 72 : maxLen <= 8 ? 60 : 50;
+    } else {
+      fs = maxLen <= 4 ? 70 : maxLen <= 6 ? 60 : maxLen <= 8 ? 52 : 44;
+    }
+    // 4) 双保险：按容器宽度收缩，确保最长行不溢出
     var fit = Math.floor(W / Math.max(1, maxLen) * 0.94);
     if (fs > fit) fs = Math.max(13, fit);
-    var lh = 1.42;
+    var lh = lines.length === 1 ? 1.25 : 1.42;
     var html = lines.map(function (s) {
       return '<div style="font-size:' + fs + 'px;font-weight:900;line-height:' + lh + ';color:' + t.ink +
-        ';text-shadow:0 2px 10px rgba(0,0,0,.25);white-space:normal;word-break:break-all;overflow-wrap:break-word;">' + esc(s) + '</div>';
+        ';text-shadow:0 3px 16px rgba(0,0,0,.28);white-space:normal;word-break:break-all;overflow-wrap:break-word;">' + esc(s) + '</div>';
     }).join('');
     return '<div style="text-align:center;">' + html + '</div>';
   }
