@@ -125,9 +125,11 @@ function renderXhsCards(r) {
   const next = () => {
     if (i >= 4) {
       grid.innerHTML = urls.map((u, n) =>
-        '<div class="xhs-item" onclick="showViewer(this)">' +
+        '<div class="xhs-item" onclick="openXhs(' + n + ')">' +
         '<img src="' + u + '" alt="图文卡 ' + (n + 1) + '" />' +
-        '<span class="no">' + (n + 1) + '/4</span></div>').join('');
+        '<span class="no">' + (n + 1) + '/4</span>' +
+        '<span class="xhs-zoom">🔍</span></div>').join('');
+      xhsGallery = urls.slice(); xhsGalleryReady = true; // 直接喂给画廊
       return;
     }
     grid.innerHTML = '<div class="xhs-loading"><span class="spin"></span>正在绘制图文卡片 ' + (i + 1) + '/4 …</div>';
@@ -171,10 +173,118 @@ function renderXhsCardsHTML(r) {
   const theme = coverThemeOf(r);
   const opts = { theme, title: r.titles?.[0] || '', cardLines: r.cardLines || [], golden: r.golden || '' };
   if (!(r.titles && r.titles.length)) { renderXhsCards(r); return; }
+  // 整张卡片可点：点图片弹出全屏滑动画廊（左右切换 / 长按保存）
   grid.innerHTML = [0, 1, 2, 3].map(i =>
-    '<div class="xhs-cell"><div class="xhs-item"><div class="html-box" id="xhsHtml' + i + '">' + CoverEngine.xhsCard(opts, i) + '</div></div>' +
-    '<button class="btn ghost xs" onclick="saveAsImage(document.getElementById(\'xhsHtml' + i + '\'))">保存第' + (i + 1) + '张</button></div>'
+    '<div class="xhs-item" onclick="openXhs(' + i + ')">' +
+    '<div class="html-box" id="xhsHtml' + i + '">' + CoverEngine.xhsCard(opts, i) + '</div>' +
+    '<span class="xhs-zoom">🔍</span></div>'
   ).join('');
+  buildXhsGallery(); // 后台预生成 4 张 PNG，供画廊滑动与保存
+}
+
+// ===== 小红书图文：全屏滑动画廊（点图弹出 / 左右滑切换 / 长按保存） =====
+let xhsGallery = [];        // 4 张 dataURL
+let xhsGalleryReady = false;
+let xhsGalleryBuilding = false;
+let xhsGalleryPromise = null;
+let xhsCurrent = 0;
+let xhsViewer, xhsTrack, xhsDots, xhsCount;
+
+// 把页面上已渲染的 4 个 html-box 转成 PNG 缓存起来（后台异步，不阻塞结果展示）
+function buildXhsGallery() {
+  if (xhsGalleryBuilding) return xhsGalleryPromise || Promise.resolve();
+  const els = [0, 1, 2, 3].map(i => document.getElementById('xhsHtml' + i));
+  if (!window.html2canvas || !els.some(Boolean)) {
+    xhsGallery = []; xhsGalleryReady = true; return (xhsGalleryPromise = Promise.resolve());
+  }
+  xhsGalleryBuilding = true; xhsGalleryReady = false;
+  xhsGallery = new Array(4);
+  let left = els.filter(Boolean).length;
+  xhsGalleryPromise = new Promise(resolve => {
+    const done = () => { if (--left <= 0) { xhsGalleryBuilding = false; xhsGalleryReady = true; resolve(); } };
+    els.forEach((el, i) => {
+      if (!el) return done();
+      html2canvas(el, { backgroundColor: null, scale: 2, logging: false })
+        .then(cv => { xhsGallery[i] = cv.toDataURL('image/png'); })
+        .catch(() => {}).finally(done);
+    });
+  });
+  return xhsGalleryPromise;
+}
+
+// 点某张卡片 -> 打开画廊（确保该图已就绪）
+function openXhs(i) {
+  const start = () => showXhsGallery(i);
+  if (xhsGalleryReady && xhsGallery[i]) return start();
+  toast('正在准备图片…');
+  (xhsGalleryBuilding ? xhsGalleryPromise : buildXhsGallery()).then(() => {
+    if (!xhsGallery[i]) {
+      const el = document.getElementById('xhsHtml' + i);
+      if (el && window.html2canvas) {
+        html2canvas(el, { backgroundColor: null, scale: 2, logging: false })
+          .then(cv => { xhsGallery[i] = cv.toDataURL('image/png'); start(); });
+        return;
+      }
+    }
+    start();
+  });
+}
+
+function cacheXhsEls() {
+  xhsViewer = $('#xhsViewer'); xhsTrack = $('#xhsTrack');
+  xhsDots = $('#xhsDots'); xhsCount = $('#xhsCount');
+}
+
+function showXhsGallery(start) {
+  if (!xhsViewer) cacheXhsEls();
+  xhsTrack.innerHTML = xhsGallery.map((u, n) =>
+    '<div class="xhs-slide"><img src="' + (u || '') + '" alt="小红书图文 ' + (n + 1) + '"' +
+    (u ? '' : ' style="opacity:.12"') + '/></div>'
+  ).join('');
+  xhsDots.innerHTML = xhsGallery.map((_, n) => '<span class="dot' + (n === start ? ' on' : '') + '"></span>').join('');
+  xhsViewer.classList.add('on');
+  xhsCurrent = start;
+  requestAnimationFrame(() => {
+    xhsTrack.scrollLeft = start * xhsTrack.clientWidth;
+    xhsCount.textContent = (start + 1) + ' / ' + xhsGallery.length;
+  });
+}
+
+function closeXhs() { if (xhsViewer) xhsViewer.classList.remove('on'); }
+
+function downloadXhs() {
+  const url = xhsGallery[xhsCurrent];
+  if (!url) return;
+  const a = document.createElement('a');
+  a.href = url; a.download = '闪写Spark_小红书_' + (xhsCurrent + 1) + '.png';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+// 滑动切换：用原生 scroll-snap，监听 scroll 更新页码与指示点
+if ($('#xhsTrack')) {
+  const track = $('#xhsTrack');
+  track.addEventListener('scroll', () => {
+    const i = Math.round(track.scrollLeft / track.clientWidth);
+    if (i !== xhsCurrent && i >= 0 && i < xhsGallery.length) {
+      xhsCurrent = i;
+      xhsCount.textContent = (i + 1) + ' / ' + xhsGallery.length;
+      [...xhsDots.children].forEach((d, n) => d.classList.toggle('on', n === i));
+    }
+  }, { passive: true });
+  // 点图片（非滑动、非长按）关闭画廊
+  let sx = 0, sy = 0, st = 0, moved = false;
+  track.addEventListener('touchstart', e => {
+    const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now(); moved = false;
+  }, { passive: true });
+  track.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    if (Math.abs(t.clientX - sx) > 8 || Math.abs(t.clientY - sy) > 8) moved = true;
+  }, { passive: true });
+  track.addEventListener('touchend', () => {
+    if (!moved && Date.now() - st < 300) closeXhs();
+  }, { passive: true });
+  $('#xhsClose').onclick = e => { e.stopPropagation(); closeXhs(); };
+  $('#xhsSave').onclick = e => { e.stopPropagation(); downloadXhs(); };
 }
 function renderVideoThumbHTML(r) {
   const card = $('#wcCard'); // 复用封面卡片位置展示视频缩略

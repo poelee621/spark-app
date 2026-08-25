@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>闪写 Spark · 中文创作灵感助手</title>
-<link rel="stylesheet" href="style.css?v=4" />
+<link rel="stylesheet" href="style.css?v=5" />
 <style>
   /* HTML 封面 / 卡片：由 CoverEngine 生成，容器提供比例，封面铺满 */
   .html-box { width: 100%; height: 100%; border-radius: 14px; overflow: hidden; background: #111; }
@@ -66,7 +66,7 @@
       <div class="card xhs-card" id="xhsCard" style="display:none">
         <div class="xhs-head">
           <span class="xhs-tag">📕 小红书图文</span>
-          <span class="xhs-tip">可保存为图片</span>
+          <span class="xhs-tip">点击看大图 · 左右滑动 · 长按保存</span>
         </div>
         <div class="xhs-grid" id="xhsGrid"></div>
       </div>
@@ -161,10 +161,22 @@
   <footer>闪写 Spark · 坡哥 & 小9 联合出品</footer>
 </div>
 
-<!-- 图片全屏预览 -->
+<!-- 图片全屏预览（公众号/视频封面） -->
 <div class="viewer" id="viewer" onclick="this.classList.remove('on')">
   <img id="viewerImg" alt="" />
   <div class="viewer-tip">长按图片保存 · 点击任意处关闭</div>
+</div>
+
+<!-- 小红书图文：全屏滑动画廊（点图弹出 / 左右滑切换 / 长按保存） -->
+<div class="xhs-viewer" id="xhsViewer">
+  <div class="xhs-track" id="xhsTrack"></div>
+  <div class="xhs-dots" id="xhsDots"></div>
+  <div class="xhs-bar">
+    <button class="xhs-x" id="xhsClose" aria-label="关闭">✕</button>
+    <div class="xhs-count" id="xhsCount">1 / 4</div>
+    <button class="xhs-save" id="xhsSave">⬇ 保存</button>
+  </div>
+  <div class="xhs-hint">左右滑动切换 · 长按图片保存到相册</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -176,6 +188,6 @@
 <script src="xhs_cards.js?v=4"></script>
 <script src="wechat_cover.js?v=4"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
