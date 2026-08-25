@@ -8,7 +8,8 @@
 // 说明:
 // - 纯前端 SPA（Capacitor WebView 内容等同网页端），直接渲染 app/ 即可
 // - 生成内容走内置 DeepSeek Key（llm.js BUILTIN_KEY），无需任何交互
-// - 视口精确匹配 App Store 要求: 6.7"=1290x2796, 6.5"=1242x2688 (deviceScaleFactor=1)
+// - 视口精确匹配 App Store 要求:
+//   6.7"=1290x2796, 6.5"=1242x2688, iPad Pro 12.9"=2048x2732 (deviceScaleFactor=1)
 // - 6 张: 创作首页 / 公众号结果 / 小红书图文 / 短视频封面 / 会员 / 关于
 
 import { chromium } from 'playwright';
@@ -97,8 +98,8 @@ async function run() {
   await new Promise(r => server.listen(PORT, r));
   console.log('static server on', PORT);
 
-  const sizes = (process.env.SIZES || '6.7,6.5').split(',').map(s => s.trim()).filter(Boolean);
-  const map = { '6.7': [1290, 2796], '6.5': [1242, 2688] };
+  const sizes = (process.env.SIZES || '6.7,6.5,12.9').split(',').map(s => s.trim()).filter(Boolean);
+  const map = { '6.7': [1290, 2796], '6.5': [1242, 2688], '12.9': [2048, 2732] };
 
   const browser = await chromium.launch({ args: ['--no-sandbox'] });
   try {

@@ -46,6 +46,13 @@ jobs:
         if: ${{ inputs.regenerate_screenshots == true }}
         run: node scripts/make_screenshots.mjs
 
+      - name: Upload generated screenshots artifact
+        if: ${{ inputs.regenerate_screenshots == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: appstore-screenshots
+          path: fastlane/screenshots/
+
       - name: Install fastlane
         run: sudo gem install fastlane -N
 
