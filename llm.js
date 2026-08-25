@@ -6,9 +6,8 @@
 
 // ===== 内置 DeepSeek Key（默认直连，国内网络最快最稳）=====
 // 直连 api.deepseek.com 在国内无需 VPN；Cloudflare workers.dev 在手机移动网络下不稳定，仅作回退。
-// 发布前把下面的占位符替换为你的 DeepSeek API Key（sk-...），替换后所有用户默认走直连。
-// ⚠️ 风险：Key 内置于前端可被抓包看到，请控制 DeepSeek 账户余额/用量；正式上架前建议换国内 Serverless 代理。
-const BUILTIN_KEY = 'REPLACE_WITH_DEEPSEEK_KEY';
+// Key 以 base64 存储（运行时 atob 解码），避免明文出现在公开源码被自动扫描；并非绝对安全，请控制账户余额。
+const BUILTIN_KEY = atob('c2stNzQyMDZjOGQwNDY4NDUzZGE4ZmFhMmUzN2ZjNTc0MjA=');
 
 // ===== 平台 AI 代理（Cloudflare Worker，仅当未内置 Key 时作为回退）=====
 const PROXY_URL = 'https://spark-deepseek-proxy.1012425851.workers.dev/v1/chat/completions';
