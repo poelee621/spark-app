@@ -8,11 +8,14 @@
 ## ✅ 当前进度
 - [x] Apple Developer Program 注册（$99/年）
 - [x] 创建 App 记录（Bundle ID: `com.coldtank.spark`）
-- [ ] 生成证书 + 描述文件
-- [ ] 配置打包与上传（本地 Xcode 或 GitHub Actions）
-- [ ] 部署订阅后端 + 隐私政策 URL
-- [ ] RevenueCat 商品 + Key
-- [ ] 截图/视频 → 提交审核
+- [x] 证书 + 描述文件（已入 GitHub Secrets）
+- [x] GitHub Actions 云构建 + TestFlight 自动分发（`ios-build.yml`，App Store Connect API Key 已升 **App Manager** 角色）
+- [x] 隐私政策托管（gh-pages：https://poelee621.github.io/spark-app/privacy.html）
+- [x] 中文元数据 + 分级（`fastlane/metadata/zh-Hans/` + `rating.json`）
+- [x] 截图 12 张（6.7" + 6.5" 各 6，`fastlane/screenshots/zh-Hans/`，`scripts/make_screenshots.mjs` 可重生成）
+- [x] 一键提交审核（`appstore-submit.yml`，手动触发）
+- [ ] **替换 `review_information.json` 占位联系信息（提交前必做）**
+- [ ] push → 跑 `App Store Submit` workflow → 提交审核
 
 ---
 
@@ -103,27 +106,35 @@ npx cap open ios     # Xcode 打开
 - Product → Archive → Distribute → App Store Connect → Upload
 - 上传后进 TestFlight 等处理
 
-### 路径 B：没有 Mac（GitHub Actions 云构建，推荐）
-1. 把 `spark-app` 推到 **GitHub 公开仓库**（Actions 免费额度：公开仓库 macOS runner 免费）
-2. 仓库 → Settings → Secrets and variables → Actions → 添加 6 个 Secret：
+### 路径 B：没有 Mac（GitHub Actions 云构建，推荐，当前在用）
+1. 把 `spark-app` 推到 **GitHub 仓库**（Actions 免费额度：公开仓库 macOS runner 免费）
+2. 仓库 → Settings → Secrets and variables → Actions → **以下 Secret 已全部配置（iOS 构建在跑，勿删）**：
 
-| Secret | 值 |
-|--------|-----|
-| `IOS_P12_BASE64` | §3.4 的 base64 |
-| `IOS_P12_PASSWORD` | p12 密码 |
-| `IOS_PROFILE_BASE64` | §3.5 的 base64 |
-| `TEAM_ID` | §4.3 |
-| `APPLE_API_KEY_ID` | §4.2 Key ID |
-| `APPLE_API_ISSUER_ID` | §4.2 Issuer ID |
-| `APPLE_API_KEY_B64` | §4.2 .p8 的 base64 |
-3. 打开 Actions → 选中 **iOS Build & Upload to TestFlight** → **Run workflow**
-4. 跑完：TestFlight 自动收到新版本；Actions 页面可下载 `Spark.ipa` 备份
+| Secret | 值 | 用途 |
+|--------|-----|------|
+| `IOS_P12_BASE64` | §3.4 的 base64 | 签名证书 |
+| `IOS_P12_PASSWORD` | p12 密码 | 签名证书 |
+| `IOS_PROFILE_BASE64` | §3.5 的 base64 | 描述文件 |
+| `TEAM_ID` | §4.3 | 团队 |
+| `APPLE_API_KEY_ID` | §4.2 Key ID | API Key |
+| `APPLE_API_ISSUER_ID` | §4.2 Issuer ID | API Key |
+| `APPLE_API_KEY_B64` | §4.2 .p8 的 base64 | API Key |
 
-## §7 截图 / 视频 / 提交审核
-1. 用模拟器或真机截 3-5 张图（创作页 / 结果页 / 会员页 / AI 页 / 关于页），替换 `screenshots/index.html` 模板占位
-2. 按 `content/preview_video_script.md` 录 15 秒预览视频
-3. 上传素材 → 填完所有元数据 → **提交审核**
-4. 审核注意：内购商品必须先「批准」；沙盒测试账号建议先建（用户和访问 → 沙盒）
+> 💡 **上架提交（appstore-submit.yml）只复用其中 4 个**（APPLE_API_KEY_* 与 TEAM_ID），无需新增任何 Secret。
+3. 推 main 自动触发 **iOS Build & Upload to TestFlight**；跑完 TestFlight 自动收到新版。
+4. 提交审核：仓库 → Actions → **App Store Submit（上架审核）** → Run workflow（默认用已提交的截图；若 UI 大改可勾选 `regenerate_screenshots` 重新生成，会调 DeepSeek 生成真实内容，约 5 分钟）。
+
+## §7 截图 / 提交审核（已自动化）
+1. 截图已自动生成（`scripts/make_screenshots.mjs`：Playwright 渲染真实界面 + DeepSeek 生成内容，6.7" 1290×2796 与 6.5" 1242×2688 各 6 张）。
+2. 本机重新生成：
+   ```bash
+   npm ci
+   npx playwright install chromium
+   SIZES=6.7,6.5 node scripts/make_screenshots.mjs
+   ```
+3. 提交前必改：`fastlane/metadata/zh-Hans/review_information.json` 的邮箱/电话为真实信息。
+4. 审核注意：内购商品必须先「批准」；沙盒测试账号建议先建（用户和访问 → 沙盒）。
+5. 提交后 1-2 天出结果；审核可能询问 AI 内容合规（已在 review notes 说明：不采集身份、无社区、无广告）。
 
 ## §8 审核通过后（护城河路线，见 PRODUCT_ROADMAP.md）
 - [ ] 验证 RevenueCat Webhook 落库（用沙盒购买测试）
