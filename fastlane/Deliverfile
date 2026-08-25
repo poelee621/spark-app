@@ -22,8 +22,9 @@ skip_metadata false
 overwrite_screenshots true
 automatic_release true
 
-# 定价：0 = 免费
-price_tier 0
+# 注意：定价（免费）和 App 隐私详情目前需手动在 App Store Connect 后台设置，
+# fastlane 2.238 的 price_tier / app_privacy_details API 在当前 App Store Connect API 下会报错。
+# 请在首次提交前到「App 隐私」和「定价与销售范围」补完后再跑此 workflow。
 
 # precheck 默认会检查 IAP，但 API Key 暂不支持；本 App 无 IAP，直接排除
 precheck_include_in_app_purchases false
