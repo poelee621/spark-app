@@ -1,0 +1,10 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "上传元数据 + 截图，并向 App Store 提交审核"
+  lane :submit do
+    setup_ci if ENV['CI']
+    # 全部参数见 Deliverfile；此处仅触发 deliver
+    deliver
+  end
+end

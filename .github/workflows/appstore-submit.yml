@@ -1,0 +1,69 @@
+name: App Store Submit（上架审核）
+
+# 手动触发：在 GitHub 仓库 Actions 页点 "Run workflow"
+# 前置：main 分支已 push 过（ios-build.yml 会自动把 IPA 上传到 TestFlight，形成可提交的 build）
+on:
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: '备注（可选，仅记录用）'
+        required: false
+        default: ''
+      regenerate_screenshots:
+        description: '是否重新生成截图（会调用 DeepSeek 生成真实内容，较慢）'
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  submit:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer || \
+          sudo xcode-select -s /Applications/Xcode_26.1.1.app/Contents/Developer || \
+          sudo xcode-select -s /Applications/Xcode_26.0.1.app/Contents/Developer
+          xcodebuild -version
+
+      - name: Setup Node
+        if: ${{ inputs.regenerate_screenshots == true }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright + Chromium（仅在需要重新截图时）
+        if: ${{ inputs.regenerate_screenshots == true }}
+        run: |
+          npm ci
+          npx playwright install chromium
+
+      - name: Generate App Store screenshots（真实界面）
+        if: ${{ inputs.regenerate_screenshots == true }}
+        run: node scripts/make_screenshots.mjs
+
+      - name: Install fastlane
+        run: sudo gem install fastlane -N
+
+      - name: Decode App Store Connect API Key (.p8)
+        env:
+          APPLE_API_KEY_B64: ${{ secrets.APPLE_API_KEY_B64 }}
+        run: |
+          echo "APPLE_API_KEY_B64 length: ${#APPLE_API_KEY_B64}"
+          echo "$APPLE_API_KEY_B64" | base64 --decode > AuthKey_TVTRXQKFKT.p8
+          echo "decoded p8 bytes: $(stat -f%z AuthKey_TVTRXQKFKT.p8 2>/dev/null || stat -c%s AuthKey_TVTRXQKFKT.p8 2>/dev/null)"
+
+      - name: fastlane deliver + submit_for_review
+        env:
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_FILEPATH: ${{ github.workspace }}/AuthKey_TVTRXQKFKT.p8
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+        run: |
+          echo "=== 开始提交到 App Store 审核 ==="
+          fastlane submit
+          echo "=== 提交完成（若上方无 ERROR 即已进入审核队列） ==="

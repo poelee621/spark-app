@@ -20,6 +20,8 @@ ios_*_base64_for_github.txt
 
 # 运行时数据
 entitlements.json
+proxy/.wrangler/
+
 
 # 系统
 .DS_Store

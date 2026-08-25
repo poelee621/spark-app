@@ -1,0 +1,36 @@
+# 闪写 Spark · App Store 上架配置（fastlane deliver）
+# 密钥由 CI 通过 App Store Connect API Key（App Manager 角色）注入，不写死在此文件
+
+app_identifier "com.coldtank.spark"
+# app_version 留空 -> deliver 自动选用最新已处理完成（VALID）的 build 版本
+team_id ENV['TEAM_ID']
+
+# 元数据 / 截图 / 分级 路径
+metadata_path "./fastlane/metadata"
+screenshots_path "./fastlane/screenshots"
+app_rating_config_path "./fastlane/metadata/rating.json"
+
+# 商店分类
+primary_category "PRODUCTIVITY"
+secondary_category "UTILITIES"
+
+# 提交审核
+submit_for_review true
+force true
+skip_screenshots false
+skip_metadata false
+overwrite_screenshots true
+automatic_release true
+
+# 提交时回答的合规问题
+# 本 App：不收集用户真实身份、无加密出口限制、无广告、无 IDFA、无第三方内容
+submission_information({
+  export_compliance_available_on_french_store: false,
+  export_compliance_contains_proprietary_cryptography: false,
+  export_compliance_contains_third_party_cryptography: false,
+  export_compliance_is_exempt: true,
+  export_compliance_uses_encryption: false,
+  export_compliance_app_type: nil,
+  add_id_info_uses_idfa: false,
+  content_rights_contains_third_party_content: false
+})
