@@ -230,7 +230,7 @@ async function generate() {
   let result = null;
   try {
     if (LLM.enabled()) {
-      $('#out').innerHTML = '<div class="empty"><span class="spin"></span>正在调用大模型…（约 3~8 秒）</div>';
+      $('#out').innerHTML = '<div class="empty"><span class="spin"></span>正在调用大模型…（长文约 10~40 秒，请稍候）</div>';
       try {
         result = await LLM.call(plat, style, topic);
         render(result, 'ai');

@@ -144,68 +144,87 @@ ${typeGuide}
     const p = this.PROVIDERS[c.provider] || this.PROVIDERS.deepseek;
     const base = c.baseUrl || p.base;
     const model = c.model || p.model;
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 20000); // 20s 超时，移动网络留足余量
-    try {
-      let endpoint, headers = { 'Content-Type': 'application/json' };
-      if (useProxy) {
-        endpoint = PROXY_URL;
-        // 用户若在「关于」页填了自带 key，通过 header 传给 Worker（Worker 会改用它）
-        if (c.apiKey) headers['x-spark-key'] = c.apiKey;
-      } else {
-        endpoint = base + '/chat/completions';
-        if (!c.apiKey) throw new Error('未配置 AI（也无平台代理）');
-        headers['Authorization'] = 'Bearer ' + c.apiKey;
+
+    // 单次请求尝试（独立 AbortController，便于重试时重置超时）
+    const attempt = async (timeoutMs) => {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+      try {
+        let endpoint, headers = { 'Content-Type': 'application/json' };
+        if (useProxy) {
+          endpoint = PROXY_URL;
+          // 用户若在「关于」页填了自带 key，通过 header 传给 Worker（Worker 会改用它）
+          if (c.apiKey) headers['x-spark-key'] = c.apiKey;
+        } else {
+          endpoint = base + '/chat/completions';
+          if (!c.apiKey) throw new Error('未配置 AI（也无平台代理）');
+          headers['Authorization'] = 'Bearer ' + c.apiKey;
+        }
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          signal: ctrl.signal,
+          headers,
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: 'system', content: this.SYSTEM },
+              { role: 'user', content: this.buildPrompt(plat, style, topic) }
+            ],
+            temperature: 0.85,
+            response_format: { type: 'json_object' }
+          })
+        });
+        clearTimeout(timer);
+        if (!res.ok) throw new Error('API ' + res.status);
+        const data = await res.json();
+        const text = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
+        const obj = JSON.parse(text);
+        if (!obj.titles) throw new Error('返回格式异常');
+        // 统一包装
+        const out = { topic, titles: obj.titles, golden: obj.golden || '', plat, source: 'ai' };
+        if (obj.sections) {
+          out.sections = obj.sections;
+          out.intro = obj.intro || '';
+          out.outro = obj.outro || '';
+          let body = (obj.intro || '') + '\n\n';
+          obj.sections.forEach(s => { body += '## ' + s.h + '\n\n' + s.p + '\n\n'; });
+          body += obj.outro || '';
+          out.body = body.trim();
+        } else if (plat === 'xhs') {
+          out.painPoints = obj.painPoints || [];
+          out.tips = obj.tips || [];
+          out.body = obj.body || '';
+        } else if (plat === 'video') {
+          out.hook = obj.hook || '';
+          out.script = Array.isArray(obj.script) ? obj.script : [];
+          out.body = out.hook + '\n\n' + out.script.map(s => s.shot + ' ' + s.text).join('\n\n');
+        } else {
+          out.outline = obj.outline || [];
+          out.body = obj.body || '';
+        }
+        // 主题（封面由客户端 CoverEngine 按 theme 渲染，不再依赖大模型吐 HTML）
+        if (obj.theme) out.theme = obj.theme;
+        return out;
+      } catch (e) {
+        clearTimeout(timer);
+        throw e;
       }
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        signal: ctrl.signal,
-        headers,
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: this.SYSTEM },
-            { role: 'user', content: this.buildPrompt(plat, style, topic) }
-          ],
-          temperature: 0.85,
-          response_format: { type: 'json_object' }
-        })
-      });
-      clearTimeout(timer);
-      if (!res.ok) throw new Error('API ' + res.status);
-      const data = await res.json();
-      const text = (data.choices?.[0]?.message?.content || '').replace(/```json|```/g, '').trim();
-      const obj = JSON.parse(text);
-      if (!obj.titles) throw new Error('返回格式异常');
-      // 统一包装
-      const out = { topic, titles: obj.titles, golden: obj.golden || '', plat, source: 'ai' };
-      if (obj.sections) {
-        out.sections = obj.sections;
-        out.intro = obj.intro || '';
-        out.outro = obj.outro || '';
-        let body = (obj.intro || '') + '\n\n';
-        obj.sections.forEach(s => { body += '## ' + s.h + '\n\n' + s.p + '\n\n'; });
-        body += obj.outro || '';
-        out.body = body.trim();
-      } else if (plat === 'xhs') {
-        out.painPoints = obj.painPoints || [];
-        out.tips = obj.tips || [];
-        out.body = obj.body || '';
-      } else if (plat === 'video') {
-        out.hook = obj.hook || '';
-        out.script = Array.isArray(obj.script) ? obj.script : [];
-        out.body = out.hook + '\n\n' + out.script.map(s => s.shot + ' ' + s.text).join('\n\n');
-      } else {
-        out.outline = obj.outline || [];
-        out.body = obj.body || '';
+    };
+
+    // 超时 60s（移动网络下长文生成需要时间）；超时或 5xx 自动重试一次（Worker 冷启动首包偏慢）
+    let lastErr;
+    for (let i = 0; i < 2; i++) {
+      try {
+        return await attempt(60000);
+      } catch (e) {
+        lastErr = e;
+        const retryable = e.name === 'AbortError' || (e.message || '').startsWith('API 5');
+        if (!retryable) break;
       }
-      // 主题（封面由客户端 CoverEngine 按 theme 渲染，不再依赖大模型吐 HTML）
-      if (obj.theme) out.theme = obj.theme;
-      return out;
-    } catch (e) {
-      clearTimeout(timer);
-      if (e.name === 'AbortError') throw new Error('请求超时，请检查网络或清除 Key 用规则引擎');
-      throw e;
     }
+    if (lastErr && lastErr.name === 'AbortError') {
+      throw new Error('请求超时，请检查网络或清除 Key 用规则引擎');
+    }
+    throw lastErr;
   }
 };
