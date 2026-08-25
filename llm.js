@@ -140,9 +140,15 @@ ${typeGuide}
   "painPoints": ["3个围绕主题的具体痛点 / 共鸣点，带真实场景"],
   "tips": ["3条围绕主题的具体干货（知识型给框架 / 维度 / 概念，行动型给步骤 / 动作）"],
   "body": "正文，用\\n\\n分段，300~500字，口语化可带 emoji，必须有观点和细节",
-  "golden": "一句围绕主题的金句，禁止空泛口号"
+  "golden": "一句围绕主题的金句，禁止空泛口号",
+  "cardLines": [
+    "第1张大字封面短标题（最多3行，每行最多8个字）",
+    "第2张痛点提炼短句（最多3行，每行最多8个字）",
+    "第3张干货提炼短句（最多3行，每行最多8个字）",
+    "第4张金句（最多3行，每行最多8个字）"
+  ]
 }
-注意：不要返回任何 HTML 字段（如 cardsHtml），4 张图文卡由客户端按 theme 自动渲染（封面卡用 titles[0]、痛点卡用 painPoints、干货卡用 tips、金句卡用 golden）。`;
+注意：不要返回任何 HTML 字段（如 cardsHtml），4 张图文卡统一用 cardLines 渲染为大字海报（大字为主、精简凝练、每行不超过8字、每张不超过3行）。`;
   },
 
   async call(plat, style, topic) {
@@ -204,6 +210,7 @@ ${typeGuide}
           out.painPoints = obj.painPoints || [];
           out.tips = obj.tips || [];
           out.body = obj.body || '';
+          out.cardLines = Array.isArray(obj.cardLines) && obj.cardLines.length === 4 ? obj.cardLines : [];
         } else if (plat === 'video') {
           out.hook = obj.hook || '';
           out.script = Array.isArray(obj.script) ? obj.script : [];
